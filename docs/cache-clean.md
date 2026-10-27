@@ -27,7 +27,7 @@ only accepts connections it has allowed this way.
 The TV forgets an allowed key that has not connected for 7 days, so between cleans Glass TV checks in every
 3 days: it connects and disconnects, running nothing, and the TV keeps trusting it without asking again.
 
-It is built not to get in the way: it only ever sends that one command, never while an app is in front;
+It is built not to get in the way: for cleaning it only ever sends that one command, never while an app is in front;
 when debugging is off it does nothing; it tries at most once a day; and after three unanswered or declined
 prompts it stops asking.
 
@@ -37,6 +37,11 @@ prompts it stops asking.
 - See the prompt again (to test it): also `touch .../files/new-key` before `clean-now`. Glass TV makes a new key,
   which the TV has not allowed yet.
 - Its log: `logcat -s TvHome.Clean`.
+
+The same allowed connection also serves the Screensaver menu's **Choose Albums** and **Switch Account**
+(`StockScreens`). Google TV's album picker and account switcher need the stock Google TV launcher, which
+Glass TV keeps disabled. Only when someone presses one of those buttons, Glass TV turns it on, opens the
+screen, and turns it off again once they leave (after 15 minutes at the most). Its log: `logcat -s TvHome.Stock`.
 
 ## The computer script
 

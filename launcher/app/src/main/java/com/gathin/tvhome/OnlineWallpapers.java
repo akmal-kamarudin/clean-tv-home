@@ -134,94 +134,94 @@ final class OnlineWallpapers {
             new WallpaperItem("https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=3840&h=2160&q=80",
                     "Hong Kong Cityscape Night", "Dazzling neon metropolis framed by Victoria Harbour", "Skyscraper"),
 
-            // 🇲🇾 Koleksi Mengikut Setiap Negeri di Malaysia
+            // 🇲🇾 A collection for every state in Malaysia
             // Johor
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/2/2f/Pulau_Rawa_2014.jpg",
-                    "Pulau Rawa, Mersing", "Pantai pasir putih memukau dan air laut jernih membiru di kepulauan Mersing, Johor", "Malaysia_Johor"),
+                    "Pulau Rawa, Mersing", "Stunning white sand beaches and clear blue water in the Mersing islands, Johor", "Malaysia_Johor"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/e/e8/Rawa_Island%2C_Johor%2C_Malaysia.jpg",
-                    "Pesisir Pantai Pulau Rawa", "Pemandangan tenang pesisir pulau tropika dengan batu karang semulajadi di perairan Johor", "Malaysia_Johor"),
+                    "Pulau Rawa Coastline", "A calm tropical island shore with natural coral rocks in Johor's waters", "Malaysia_Johor"),
 
             // Kedah
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/b/b6/Langkawi_Sky_Bridge_%28November_2016%29.jpg",
-                    "Langkawi Sky Bridge", "Jambatan gantung melengkung ikonik di puncak Gunung Mat Cincang merentasi hutan purba Langkawi", "Malaysia_Kedah"),
+                    "Langkawi Sky Bridge", "The iconic curved suspension bridge atop Gunung Mat Cincang, over Langkawi's ancient rainforest", "Malaysia_Kedah"),
             new WallpaperItem("https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Pulau Langkawi Permata Kedah", "Permata kepulauan tropika Kedah dengan keindahan pantai dan laut zamrud", "Malaysia_Kedah"),
+                    "Langkawi, Jewel of Kedah", "Kedah's tropical island jewel, with beautiful beaches and an emerald sea", "Malaysia_Kedah"),
 
             // Kelantan
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/9/94/Pantai_di_Kota_Bharu%2C_Kelantan.2.jpg",
-                    "Pantai Cahaya Bulan & Senok", "Keindahan panorama pesisir pantai Laut China Selatan dengan deretan pohon rhu di Kota Bharu", "Malaysia_Kelantan"),
+                    "Pantai Cahaya Bulan & Senok", "A South China Sea shoreline lined with casuarina trees in Kota Bharu", "Malaysia_Kelantan"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/4/49/Pantai_di_Kota_Bharu%2C_Kelantan.3.jpg",
-                    "Pesisir Nelayan Kelantan", "Suasana damai perkampungan nelayan dan tiupan angin pantai timur di pesisir Kelantan", "Malaysia_Kelantan"),
+                    "Kelantan Fishing Coast", "A peaceful fishing village and east-coast sea breeze on the Kelantan shore", "Malaysia_Kelantan"),
 
             // Melaka
             new WallpaperItem("https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Bandaraya Bersejarah Melaka", "Keunikan warisan sejarah Kesultanan Melayu dan peninggalan era penjajah di tepi Sungai Melaka", "Malaysia_Melaka"),
+                    "Historic Melaka City", "The heritage of the Malay Sultanate and colonial-era landmarks along the Melaka River", "Malaysia_Melaka"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/7/74/Malacca_by_Night_-_panoramio_%281%29.jpg",
-                    "Sungai Melaka & Jambatan Warisan", "Limpahan cahaya malam yang mempesona di sepanjang persiaran bersejarah Sungai Melaka", "Malaysia_Melaka"),
+                    "Melaka River & Heritage Bridge", "Enchanting night lights along the historic Melaka River promenade", "Malaysia_Melaka"),
 
             // Negeri Sembilan
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/b/bc/Port-dickson-beach-1.jpg",
-                    "Pantai Cahaya Negeri Port Dickson", "Pantai pasir landai dan deretan pepohon kelapa berlatarkan Selat Melaka di Port Dickson", "Malaysia_NegeriSembilan"),
+                    "Pantai Cahaya Negeri, Port Dickson", "Gentle sandy beaches and coconut palms against the Strait of Malacca in Port Dickson", "Malaysia_NegeriSembilan"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/5/59/Port_Dickson_Beach_next_to_the_Bayu_Beach_Hotel.jpg",
-                    "Teluk Kemang Port Dickson", "Ketenangan pantai peranginan terkemuka Negeri Sembilan dengan pemandangan ufuk petang", "Malaysia_NegeriSembilan"),
+                    "Teluk Kemang Port Dickson", "The calm of Negeri Sembilan's best-known beach resort at dusk", "Malaysia_NegeriSembilan"),
 
             // Pahang
             new WallpaperItem("https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Ladang Teh Cameron Highlands", "Hamparan ladang teh hijau subur dan pemandangan nyaman di tanah tinggi Pahang", "Malaysia_Pahang"),
+                    "Cameron Highlands Tea Plantation", "Lush green tea fields and cool views in the Pahang highlands", "Malaysia_Pahang"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/d/d6/Cameron_Bharat_Tea_Plantation%2C_Cameron_Highlands%2C_Malaysia%2C_20250829_1432_4034.jpg",
-                    "Lembah Bharat Cameron Highlands", "Kabut pagi yang menyejukkan menyelimuti bukit-bukit teh hijau subur di Cameron Highlands", "Malaysia_Pahang"),
+                    "Bharat Valley, Cameron Highlands", "Cool morning mist over lush green tea hills in Cameron Highlands", "Malaysia_Pahang"),
 
             // Perak
             new WallpaperItem("https://images.unsplash.com/photo-1532442782935-dc7ee648a2a5?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Pekan Warisan Ipoh", "Seni bina klasik era perlombongan bijih timah dan keindahan bukit batu kapur di Ipoh", "Malaysia_Perak"),
+                    "Ipoh Heritage Town", "Classic tin-mining-era architecture and limestone hills in Ipoh", "Malaysia_Perak"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/6/68/Kellie%27s_Castle.jpg",
-                    "Istana Kellie's Castle Batu Gajah", "Kubu agam misteri era penjajah dengan seni bina Moorish dan keunikan sejarah di Batu Gajah", "Malaysia_Perak"),
+                    "Kellie's Castle, Batu Gajah", "A mysterious colonial-era mansion with Moorish architecture in Batu Gajah", "Malaysia_Perak"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/2/23/Ipoh_Kek_Lok_Dong_%288366358711%29.jpg",
-                    "Taman Gua Kek Lok Tong", "Gua batu kapur megah dengan taman tasik nan tenang di celah-celah pergunungan karst Ipoh", "Malaysia_Perak"),
+                    "Kek Lok Tong Cave Garden", "A grand limestone cave with a calm lake garden among Ipoh's karst hills", "Malaysia_Perak"),
 
             // Perlis
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/e/e0/Gua_Kelam_-_Perlis%2C_Malaysia.jpg",
-                    "Gua Kelam Kaki Bukit", "Laluan jambatan gantung purba di dalam gua batu kapur semula jadi di kaki bukit Perlis", "Malaysia_Perlis"),
+                    "Gua Kelam, Kaki Bukit", "An old suspension walkway through a natural limestone cave in Perlis", "Malaysia_Perlis"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/9/97/The_Cave_of_Darkness%2C_Gua_Kelam%2C_Perlis%2C_Malaysia_%284676111629%29.jpg",
-                    "Banjaran Nakawan Gua Kelam", "Keindahan geologi batu kapur dan aliran anak sungai bawah tanah di negeri Indera Kayangan", "Malaysia_Perlis"),
+                    "Nakawan Range, Gua Kelam", "Limestone geology and an underground stream in Perlis", "Malaysia_Perlis"),
 
             // Pulau Pinang
             new WallpaperItem("https://images.unsplash.com/photo-1582298538104-fe2e74c27f59?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Georgetown Warisan UNESCO", "Bandar warisan dunia UNESCO dengan lorong bersejarah dan seni bina kolonial unik", "Malaysia_PulauPinang"),
+                    "George Town UNESCO Heritage", "A UNESCO World Heritage city of historic lanes and colonial architecture", "Malaysia_PulauPinang"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/b/be/Penang_Malaysia_Kek-Lok-Si-Temple-02.jpg",
-                    "Kuil Kek Lok Si Air Itam", "Kuil Buddha terbesar di Malaysia di lereng bukit Air Itam dengan pagoda tujuh tingkat", "Malaysia_PulauPinang"),
+                    "Kek Lok Si Temple, Air Itam", "Malaysia's largest Buddhist temple, on the Air Itam hillside, with a seven-tier pagoda", "Malaysia_PulauPinang"),
 
             // Sabah
             new WallpaperItem("https://images.unsplash.com/photo-1571401835393-8c5f35328320?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Gunung Kinabalu Kundasang", "Puncak tertinggi di Malaysia dan Asia Tenggara dengan lautan awan memukau", "Malaysia_Sabah"),
+                    "Mount Kinabalu, Kundasang", "The highest peak in Malaysia, above a stunning sea of clouds", "Malaysia_Sabah"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/b/b7/South_Peak_Mount_Kinabalu_2.jpg",
-                    "South Peak Gunung Kinabalu", "Siluet megah puncak granit Kinabalu membelah langit fajar di Negeri Di Bawah Bayu", "Malaysia_Sabah"),
+                    "South Peak, Mount Kinabalu", "Kinabalu's granite peaks silhouetted against the dawn sky, Sabah", "Malaysia_Sabah"),
 
             // Sarawak
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/5/55/Mulu_Pinnacles.jpg",
-                    "Pinnacles Taman Negara Mulu", "Menara batu kapur karst bertaraf warisan dunia UNESCO yang menakjubkan di rimba Borneo Sarawak", "Malaysia_Sarawak"),
+                    "Pinnacles, Mulu National Park", "Breathtaking UNESCO-listed limestone spires in the Borneo rainforest of Sarawak", "Malaysia_Sarawak"),
             new WallpaperItem("https://images.unsplash.com/photo-1744525329284-3ffe4bcdf256?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Tebingan Kuching Waterfront", "Pemandangan indah Sungai Sarawak, Jambatan Darul Hana dan bangunan ikonik DUN Sarawak", "Malaysia_Sarawak"),
+                    "Kuching Waterfront", "The Sarawak River, the Darul Hana Bridge and the iconic Sarawak State Assembly building", "Malaysia_Sarawak"),
             new WallpaperItem("https://images.unsplash.com/photo-1590475461955-3e35807fa3a4?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Pesisir Pantai Miri", "Keindahan ufuk matahari terbenam di pesisir Laut China Selatan Bandaraya Miri", "Malaysia_Sarawak"),
+                    "Miri Coastline", "Sunset over the South China Sea on the Miri coast", "Malaysia_Sarawak"),
 
             // Selangor
             new WallpaperItem("https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Batu Caves Sri Subramaniar", "Tangga warna-warni ikonik berlatarbelakangkan bukit batu kapur purba dan patung Dewa Murugan", "Malaysia_Selangor"),
+                    "Batu Caves Sri Subramaniar", "The iconic rainbow staircase against ancient limestone hills and the Lord Murugan statue", "Malaysia_Selangor"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/6/69/Sultan_Salahuddin_Abdul_Aziz_Mosque_by_Fairus_Khafiz.jpg",
-                    "Masjid Sultan Salahuddin Abdul Aziz", "Masjid Negeri Shah Alam dengan kubah biru megah dan empat menara tertinggi di Malaysia", "Malaysia_Selangor"),
+                    "Sultan Salahuddin Abdul Aziz Mosque", "Shah Alam's state mosque, with its grand blue dome and Malaysia's tallest minarets", "Malaysia_Selangor"),
 
             // Terengganu
             new WallpaperItem("https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Pulau Perhentian Syurga Marin", "Syurga marin dengan pasir pantai putih bersih dan terumbu karang hidupan laut", "Malaysia_Terengganu"),
+                    "Perhentian Islands Marine Paradise", "A marine paradise of clean white sand and living coral reefs", "Malaysia_Terengganu"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/7/7f/Crystal_Mosque_in_2016.jpg",
-                    "Masjid Kristal Kuala Terengganu", "Seni bina kaca dan kristal moden yang terapung di muara Sungai Terengganu", "Malaysia_Terengganu"),
+                    "Crystal Mosque, Kuala Terengganu", "Modern glass-and-crystal architecture floating on the Terengganu River estuary", "Malaysia_Terengganu"),
 
             // Wilayah Persekutuan
             new WallpaperItem("https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Petronas Twin Towers & KLCC", "Menara ikonik berkembar kebanggaan Malaysia di tengah pusat bandar raya Kuala Lumpur", "Malaysia_WP"),
+                    "Petronas Twin Towers & KLCC", "Malaysia's iconic twin towers in the heart of Kuala Lumpur", "Malaysia_WP"),
             new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/f/f5/Petronas_twin_towers_at_night.jpg",
-                    "Horizon Malam Kuala Lumpur", "Panorama malam metropolis Kuala Lumpur bergemerlapan lampu pencakar langit", "Malaysia_WP")
+                    "Kuala Lumpur Night Skyline", "Kuala Lumpur at night, glittering with skyscraper lights", "Malaysia_WP")
     };
 
     private OnlineWallpapers() {

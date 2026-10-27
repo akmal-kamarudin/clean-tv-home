@@ -67,6 +67,10 @@ final class Config {
     final String wallpaperFeed;
     /** Days between clearing the TV's app caches (see CacheCleaner); 0 never does. */
     final int cacheCleanDays;
+    /** Idle screen until someone picks one on the TV: "nightstand" (Glass TV's clock) or "photos" (the TV's screensaver). */
+    final String screensaver;
+    /** The coloured glow behind the apps, taken from the selected app's banner; "ambient_glow": false turns it off. */
+    final boolean ambientGlow;
     /** Whether the overlay file was present and parsed. */
     final boolean overlayApplied;
 
@@ -78,7 +82,7 @@ final class Config {
                    int backgroundColor,
                    File wallpaper, List<File> wallpapers, long wallpaperIntervalMs,
                    boolean places, boolean wallpaperOnline, String wallpaperFeed,
-                   int cacheCleanDays, boolean overlayApplied) {
+                   int cacheCleanDays, String screensaver, boolean ambientGlow, boolean overlayApplied) {
         this.dockApps = Collections.unmodifiableList(dockApps);
         this.hiddenApps = Collections.unmodifiableList(hiddenApps);
         this.liveTvPackage = liveTvPackage;
@@ -103,6 +107,8 @@ final class Config {
         this.wallpaperOnline = wallpaperOnline;
         this.wallpaperFeed = wallpaperFeed != null ? wallpaperFeed : "";
         this.cacheCleanDays = cacheCleanDays;
+        this.screensaver = screensaver;
+        this.ambientGlow = ambientGlow;
         this.overlayApplied = overlayApplied;
     }
 
@@ -191,11 +197,13 @@ final class Config {
         }
         int cacheCleanDays = json != null ? integer(json, "cache_clean_days", CacheCleaner.DEFAULT_DAYS, 0, 90)
                 : CacheCleaner.DEFAULT_DAYS;
+        String screensaver = json != null && "photos".equals(string(json, "screensaver", "")) ? "photos" : "nightstand";
+        boolean ambientGlow = json == null || bool(json, "ambient_glow", true);
 
         return new Config(dock, hidden, liveTv, liveTvAction, panelService, panelAction, inputAction,
                 Math.max(1, columns), Math.max(0, rowsBelow), shamsi, moduleCards, reducedMotion,
                 vpn, homeSettings, networkPill, liveTvRow, background, wallpaper, wallpapers, wallpaperIntervalMs,
-                places, wallpaperOnline, wallpaperFeed, cacheCleanDays, applied);
+                places, wallpaperOnline, wallpaperFeed, cacheCleanDays, screensaver, ambientGlow, applied);
     }
 
     /** Reads and parses the overlay; any problem means "no overlay", never a crash on the home screen. */

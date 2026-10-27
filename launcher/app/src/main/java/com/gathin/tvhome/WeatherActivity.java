@@ -90,17 +90,17 @@ public class WeatherActivity extends Activity {
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
-        builder.setTitle("📍 Pilih Stesen Jerebu JAS / Location");
+        builder.setTitle("📍 Choose air quality station");
         builder.setSingleChoiceItems(items, selectedIndex, (dialog, which) -> {
             AppLocationManager.Station chosen = stations.get(which);
             AppLocationManager.setStation(WeatherActivity.this, chosen);
             dialog.dismiss();
-            Toast.makeText(WeatherActivity.this, "Stesen ditukar kepada: " + chosen.name, Toast.LENGTH_SHORT).show();
+            Toast.makeText(WeatherActivity.this, "Station changed to: " + chosen.name, Toast.LENGTH_SHORT).show();
             populateUi();
             // Sync in background to update readings immediately
             WeatherAirQuality.sync(WeatherActivity.this, () -> runOnUiThread(WeatherActivity.this::populateUi));
         });
-        builder.setNegativeButton("Tutup / Cancel", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
         AlertDialog dialog = builder.create();
         dialog.show();
     }
@@ -109,23 +109,21 @@ public class WeatherActivity extends Activity {
         WeatherAirQuality.FullWeather w = WeatherAirQuality.getFullWeather(this);
         if (w == null) return;
 
-        boolean isMalay = Locale.getDefault().getLanguage().startsWith("ms");
-
         weatherLocation.setText(w.location);
         weatherMainTemp.setText(w.temp + "°");
         weatherMainCondition.setText(w.condition);
         weatherMainSub.setText(String.format(Locale.ROOT, "%s %d°  •  H %d° L %d°",
-                isMalay ? "Terasa seperti" : "Feels like",
+                "Feels like",
                 w.apparentTemp, w.highTemp, w.lowTemp));
         weatherMainIcon.setImageResource(getIconDrawable(w.icon));
 
         weatherDetail1.setText(String.format(Locale.ROOT, "%s %d%%  •  %s %d km/h  •  UV %d",
-                isMalay ? "Kelembapan" : "Humidity", w.humidity,
-                isMalay ? "Angin" : "Wind", w.windSpeed, w.uvIndex));
+                "Humidity", w.humidity,
+                "Wind", w.windSpeed, w.uvIndex));
         weatherDetail2.setText(String.format(Locale.ROOT, "%s %d%%  •  %s %s  •  %s %s",
-                isMalay ? "Kebarangkalian hujan" : "Rain chance today", w.rainChanceToday,
-                isMalay ? "Terbit" : "Sunrise", w.sunrise,
-                isMalay ? "Terbenam" : "Sunset", w.sunset));
+                "Rain chance today", w.rainChanceToday,
+                "Sunrise", w.sunrise,
+                "Sunset", w.sunset));
 
         // Air Quality
         aqiValue.setText(String.valueOf(w.aqi));
@@ -135,7 +133,7 @@ public class WeatherActivity extends Activity {
 
         String param = (w.aqiParam != null && !w.aqiParam.isEmpty()) ? w.aqiParam : "PM2.5";
         String place = (w.stationPlace != null && !w.stationPlace.isEmpty()) ? w.stationPlace : w.location;
-        aqiStation.setText("JAS IPU  •  " + place + "  •  " + param);
+        aqiStation.setText("DOE API  •  " + place + "  •  " + param);
 
         // Scale bar indicator position
         aqiBar.post(() -> {
@@ -150,10 +148,10 @@ public class WeatherActivity extends Activity {
 
         // Current station info
         aqiStationsSub.setText(String.format(Locale.ROOT, "%s: %s  •  ID: %s",
-                isMalay ? "Stesen Pemantauan" : "Monitoring Station", place, w.stationId));
+                "Monitoring Station", place, w.stationId));
 
         if (w.isJasSource) {
-            aqiModelSub.setText("Sumber Rasmi: Jabatan Alam Sekitar Malaysia (APIMS/MyEQMS)");
+            aqiModelSub.setText("Official source: Department of Environment Malaysia (APIMS/MyEQMS)");
         } else {
             aqiModelSub.setText(String.format(Locale.ROOT, "Model Open-Meteo Air Quality  •  PM2.5 %.1f  •  PM10 %.1f µg/m³",
                     w.pm25, w.pm10));
@@ -161,25 +159,15 @@ public class WeatherActivity extends Activity {
 
         // Health advisory based on AQI
         if (w.aqi <= 50) {
-            aqiAdvisory.setText(isMalay
-                    ? "Kualiti udara baik. Aktiviti riadah luar boleh dijalankan seperti biasa."
-                    : "Air quality is satisfactory. Normal outdoor activities can be enjoyed.");
+            aqiAdvisory.setText("Air quality is satisfactory. Normal outdoor activities can be enjoyed.");
         } else if (w.aqi <= 100) {
-            aqiAdvisory.setText(isMalay
-                    ? "Kualiti udara sederhana. Tiada sekatan aktiviti bagi kebanyakan orang."
-                    : "Normal activities. People with heart or lung conditions should limit long outdoor exertion.");
+            aqiAdvisory.setText("Normal activities. People with heart or lung conditions should limit long outdoor exertion.");
         } else if (w.aqi <= 200) {
-            aqiAdvisory.setText(isMalay
-                    ? "Kualiti udara TIDAK SIHAT. Golongan berisiko (asma, kanak-kanak, warga emas) kurangkan aktiviti luar."
-                    : "Unhealthy. Sensitive groups should reduce prolonged or heavy outdoor exertion.");
+            aqiAdvisory.setText("Unhealthy. Sensitive groups should reduce prolonged or heavy outdoor exertion.");
         } else if (w.aqi <= 300) {
-            aqiAdvisory.setText(isMalay
-                    ? "Kualiti udara SANGAT TIDAK SIHAT. Elakkan sebarang aktiviti luar. Tutup tingkap."
-                    : "Very Unhealthy. Everyone should avoid outdoor exertion. Keep windows closed.");
+            aqiAdvisory.setText("Very Unhealthy. Everyone should avoid outdoor exertion. Keep windows closed.");
         } else {
-            aqiAdvisory.setText(isMalay
-                    ? "BERBAHAYA! Kekal di dalam rumah. Patuhi amaran pihak berkuasa."
-                    : "Hazardous! Avoid all physical activity outdoors. Remain indoors.");
+            aqiAdvisory.setText("Hazardous! Avoid all physical activity outdoors. Remain indoors.");
         }
 
         // Hourly row (Next 12 Hours)
@@ -227,7 +215,7 @@ public class WeatherActivity extends Activity {
         }
 
         weatherFooter.setText(String.format(Locale.ROOT,
-                "Updated %s  •  API: Jabatan Alam Sekitar (APIMS)  •  Weather & Forecast: Open-Meteo",
+                "Updated %s  •  API: Department of Environment (APIMS)  •  Weather & Forecast: Open-Meteo",
                 w.updatedTime));
     }
 

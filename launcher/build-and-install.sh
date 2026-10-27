@@ -133,6 +133,7 @@ esac
 ARMED=1
 printf '%s\n' \
   "pm grant com.gathin.tvhome android.permission.ACCESS_FINE_LOCATION 2>/dev/null; echo location-granted" \
+  "pm grant com.gathin.tvhome android.permission.WRITE_SECURE_SETTINGS 2>/dev/null; echo screensaver-setting-granted" \
   "cmd package compile -m speed -f com.gathin.tvhome" \
   "am start -W -n com.gathin.tvhome/.MainActivity | grep -E '^(Status|Error)'" \
   | "$PY" -I ../tools/tv.py --batch
@@ -170,7 +171,9 @@ ARMED=0
 # Optional accessibility services. Off unless asked for, and Android switches them off again on
 # every reinstall, so pass the flag each time you run this script.
 #   INPUT_KEY_SERVICE=1   the remote's Input button (KEYCODE_TV) opens the input switcher from any
-#                         app; Google TV needs this once the stock launcher is gone (InputKeyService)
+#                         app; Google TV needs this once the stock launcher is gone (InputKeyService).
+#                         On Xiaomi it also makes the Input and Settings keys (e.g. from Phone Remote)
+#                         open Home's Inputs and Settings panels
 #   HOME_KEY_SERVICE=1    remotes whose Home button sends KEYCODE_ALL_APPS instead of HOME, e.g. Xiaomi
 #                         sticks: the key is routed to the launcher (HomeKeyService)
 enable_service() {   # appends to enabled_accessibility_services without dropping other services

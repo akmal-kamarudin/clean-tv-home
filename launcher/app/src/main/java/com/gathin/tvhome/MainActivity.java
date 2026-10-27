@@ -113,9 +113,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private final Rect alignCard = new Rect(), alignButton = new Rect();
     /** How much of the space between the side paddings the top shelf may use. */
     private static final float HERO_WIDTH_SHARE = 0.40f;
-    /** The name is one line, and may run wider than the description, up to this share. */
-    private static final float HERO_NAME_WIDTH_SHARE = 0.60f;
-    private static final float HERO_TITLE_MAX_SP = 40f;
+    /** The name may run wider than the description, up to this share, clear of the ayat on the right. */
+    private static final float HERO_NAME_WIDTH_SHARE = 0.45f;
+    private static final float HERO_TITLE_MAX_SP = 30f;
     /** The breathing room between the shelf's last line and the top of the app container. */
     private static final float HERO_GAP_DP = 36f;
     private static final float HERO_TITLE_MIN_SP = 26f;
@@ -206,6 +206,16 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private static final long SCREENSAVER_TIMEOUT_MS = 10L * 60 * 1000L; // 10 minutes idle -> screensaver
     private static final long TV_SLEEP_TIMEOUT_MS = SCREENSAVER_TIMEOUT_MS + (2L * 60 * 60 * 1000L); // 2 hours later -> TV off
     private long lastUserInteraction = android.os.SystemClock.elapsedRealtime();
+    /** Opens one of Home's panels on arrival (InputKeyService: the Input and Settings keys). */
+    static final String EXTRA_PANEL = "panel";
+    static final String PANEL_INPUTS = "inputs";
+    static final String PANEL_SETTINGS = "settings";
+    private static final String SCREENSAVER_NIGHTSTAND = "nightstand";
+    private static final String SCREENSAVER_PHOTOS = "photos";
+    /** Google TV's ambient mode, which shows Google Photos albums. */
+    private static final String GOOGLE_AMBIENT_DREAM = "com.google.android.apps.tv.dreamx/.service.Backdrop";
+    /** The Phone Remote add-on (github.com/mozaiz/glass-tv-phone-remote). */
+    private static final String PHONE_REMOTE_PKG = "com.zmk.tvremote";
     private boolean screensaverActive = false;
     private View screensaverView;
     private boolean wallpaperFullscreen = false;
@@ -303,9 +313,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         android.content.SharedPreferences launch = getSharedPreferences("launch", MODE_PRIVATE);
         if (Math.abs(launch.getLong("boot_at", 0) - bootAt) < 60_000) tilesAnimatedOnce = true;
         else launch.edit().putLong("boot_at", bootAt).apply();
+        config = cfg;
         ensureSystemScreensaverAndSleepSettings();
         root.setBackgroundColor(cfg.backgroundColor);
-        config = cfg;
         wallpapers = cfg.wallpapers;
         wallpaperIntervalMs = cfg.wallpaperIntervalMs;
         placesMode = cfg.places;
@@ -833,7 +843,22 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         if (intent != null && intent.getBooleanExtra("screensaver", false)) {
-            showNightstandScreensaver();
+            startIdleScreen();
+            return;
+        }
+        String panel = intent != null ? intent.getStringExtra(EXTRA_PANEL) : null;
+        if (panel != null) {
+            // The same key again closes the panel; otherwise the screen settles first, then it opens.
+            if (screensaverActive) dismissScreensaver();
+            if (wallpaperFullscreen) setWallpaperFullscreen(false);
+            if (openMenu != null) {
+                closeMenu(false);
+                return;
+            }
+            handler.postDelayed(PANEL_INPUTS.equals(panel) ? this::showInputs : () -> {
+                menuFocusLast = true;   // the remote's Settings key goes straight to All Settings
+                showSettingsPopup();
+            }, 400);
             return;
         }
         if (intent == null || !intent.hasCategory(Intent.CATEGORY_HOME)) return;
@@ -864,7 +889,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     if (openPopup != null) openPopup.dismiss();
                     closeMenu(false);
                     if (movingPos >= 0) finishMove();
-                    showNightstandScreensaver();
+                    startIdleScreen();
                 }
             };
             handler.postDelayed(singleHomeRunnable, DOUBLE_HOME_INTERVAL_MS);
@@ -887,6 +912,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onResume() {
         super.onResume();
+        ensureSystemScreensaverAndSleepSettings();   // keep the TV's screensaver on the chosen one
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(packageReceiver, packageFilter, Context.RECEIVER_NOT_EXPORTED);
         } else {
@@ -1069,7 +1095,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 singleBackRunnable = null;
             }
             doubleBackPending = false;
-            showNightstandScreensaver();
+            startIdleScreen();
         } else {
             doubleBackPending = true;
             singleBackRunnable = () -> {
@@ -1102,8 +1128,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (glider != null) {
             glider.animate().alpha(alpha).setDuration(duration).start();
         }
-        if (ambient != null && fullscreen) {
-            ambient.animate().alpha(0f).setDuration(duration).start();
+        // The glow comes back with the rest when it was lit before: left at 0 while ambientShown stayed
+        // true, every later focus move only re-tinted an invisible glow.
+        if (ambient != null && (fullscreen || ambientShown)) {
+            ambient.animate().alpha(fullscreen ? 0f : 1f).setDuration(duration)
+                    .setUpdateListener(a -> syncGlassGlow()).start();
         }
 
         if (wallView != null && placesMode) {
@@ -1384,8 +1413,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     /**
      * The largest size at which the name still fits on one line, up to its share of the width.
-     * Names run longer than app names ("Wroclaw Market Square"), and a name cut short tells the
-     * viewer nothing, so a long one is set smaller rather than clipped.
+     * Names run longer than app names ("Wroclaw Market Square"), so a long one is set a little smaller,
+     * and past HERO_TITLE_MIN_SP wraps onto a second line rather than shrinking further or clipping.
      */
     private float titleSizeSp(String title) {
         if (title == null || title.isEmpty() || heroNameMaxWidth <= 0) return HERO_TITLE_MAX_SP;
@@ -1428,7 +1457,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 String st = country.substring("Malaysia_".length());
                 if ("WP".equalsIgnoreCase(st)) st = "Wilayah Persekutuan";
                 else if ("NegeriSembilan".equalsIgnoreCase(st)) st = "Negeri Sembilan";
-                else if ("PulauPinang".equalsIgnoreCase(st)) st = "Pulau Pinang";
+                else if ("PulauPinang".equalsIgnoreCase(st)) st = "Penang";
                 country = st + ", Malaysia";
             }
         }
@@ -1625,6 +1654,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      * back up again.
      */
     private void showAmbient(int color) {
+        if (config != null && !config.ambientGlow) return;   // "ambient_glow": false
         if (!ambientShown) {
             setAmbient(color);
             ambient.animate().alpha(1f).setDuration(reducedMotion ? 160 : 600)
@@ -1775,6 +1805,17 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             return true;
         }
         int code = event.getKeyCode();
+        // The Input and Settings keys (Phone Remote, some remotes) open Home's own panels; pressed again,
+        // they close them.
+        if (code == KeyEvent.KEYCODE_TV_INPUT || code == KeyEvent.KEYCODE_SETTINGS) {
+            if (event.getAction() == KeyEvent.ACTION_UP) {
+                if (wallpaperFullscreen) setWallpaperFullscreen(false);
+                if (openMenu != null) closeMenu(false);
+                else if (code == KeyEvent.KEYCODE_TV_INPUT) showInputs();
+                else showSettingsPopup();
+            }
+            return true;
+        }
         if (wallpaperFullscreen) {
             if (event.getAction() == KeyEvent.ACTION_UP) {
                 setWallpaperFullscreen(false);
@@ -1832,7 +1873,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                             if (openPopup != null) openPopup.dismiss();
                             closeMenu(false);
                             if (movingPos >= 0) finishMove();
-                            showNightstandScreensaver();
+                            startIdleScreen();
                         }
                     };
                     handler.postDelayed(singleHomeRunnable, DOUBLE_HOME_INTERVAL_MS);
@@ -1968,7 +2009,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (ayatTranslation != null) ayatTranslation.setText(ayat.translation);
 
         if (prayerHeader != null) {
-            prayerHeader.setText("WAKTU SOLAT  •  " + PrayerTimes.getHijriDate().toUpperCase(Locale.ROOT));
+            prayerHeader.setText("PRAYER TIMES  •  " + PrayerTimes.getHijriDate().toUpperCase(Locale.ROOT));
         }
 
         PrayerTimes.PrayerItem[] items = PrayerTimes.getPrayerItems(this);
@@ -1995,23 +2036,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private void updateDateAndPeriod() {
         Calendar cal = Calendar.getInstance();
         int hour = cal.get(Calendar.HOUR_OF_DAY);
-        String period;
-        if (hour >= 1 && hour < 12) period = "PG";
-        else if (hour >= 12 && hour < 19) period = "PTG";
-        else period = "MLM";
+        String[] days = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
+        String period = (hour < 12 ? "AM" : "PM") + " • " + days[cal.get(Calendar.DAY_OF_WEEK) - 1];
 
         int day = cal.get(Calendar.DAY_OF_MONTH);
         int month = cal.get(Calendar.MONTH);
         int year = cal.get(Calendar.YEAR);
-        String[] malayMonths = {"JAN", "FEB", "MAC", "APR", "MEI", "JUN", "JUL", "OGO", "SEP", "OKT", "NOV", "DIS"};
-        String mStr = (month >= 0 && month < 12) ? malayMonths[month] : "";
+        String[] months = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
+        String mStr = (month >= 0 && month < 12) ? months[month] : "";
         String dateStr = day + " " + mStr + " " + year;
 
         if (ampmView != null) ampmView.setText(period);
         if (dateView != null) dateView.setText(dateStr);
     }
 
-    /** Shows the Wi-Fi network name on the button when we can read it, otherwise the connection type. */
+    /** Sets the network button's icon (Wi-Fi, Ethernet, or offline) and its name for accessibility. */
     private void updateWifiLabel() {
         if (btnWifi.getVisibility() == View.GONE) return;   // show_network_pill off
         String text = getString(R.string.wifi);
@@ -2035,6 +2074,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             }
             if (!online) {
                 text = getString(R.string.offline);
+                icon = R.drawable.ic_wifi_off;
                 vpn = false;
             } else if (ethernet) {
                 text = getString(R.string.ethernet);
@@ -2050,7 +2090,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             }
         } catch (Exception ignored) {
         }
-        btnWifi.setText(text);
+        btnWifi.setContentDescription(text);
         btnWifi.setCompoundDrawablesRelativeWithIntrinsicBounds(icon, 0, 0, 0);
     }
 
@@ -2103,14 +2143,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         addSeparator(rows);
 
-        // Row 2: Tetapan Wi-Fi
-        addInputRow(rows, close, R.drawable.ic_settings, "Tetapan Wi-Fi", -1, () -> {
+        // Row 2: Wi-Fi settings
+        addInputRow(rows, close, R.drawable.ic_settings, "Wi-Fi Settings", -1, () -> {
             SoundEffects.playSelect();
             open(systemIntent(Settings.ACTION_WIFI_SETTINGS));
         });
 
-        // Row 3: Tutup
-        addInputRow(rows, close, R.drawable.ic_move, "Tutup", -1, () -> {
+        // Row 3: Close
+        addInputRow(rows, close, R.drawable.ic_move, "Close", -1, () -> {
             SoundEffects.playSelect();
             closeMenu(true);
         });
@@ -2143,11 +2183,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             showHazeLocationDialog();
         });
 
-        // Row 3: Location Waktu Solat
-        addInputRow(rows, close, R.drawable.ic_mosque, "Location Waktu Solat", -1, () -> {
+        // Row 3: Prayer times location
+        addInputRow(rows, close, R.drawable.ic_mosque, "Location Prayer Times", -1, () -> {
             SoundEffects.playSelect();
             showPrayerZoneDialog();
         });
+
+        // Screensaver: Glass TV's clock or the TV's Google Photos screensaver
+        addInputRow(rows, close, R.drawable.ic_screensaver,
+                "Screensaver: " + (usePhotosScreensaver() ? "Google Photos" : "Clock"), -1, () -> {
+            SoundEffects.playSelect();
+            showScreensaverDialog();
+        });
+
+        // Phone Remote add-on, only when it is installed
+        if (getPackageManager().getLaunchIntentForPackage(PHONE_REMOTE_PKG) != null
+                || getPackageManager().getLeanbackLaunchIntentForPackage(PHONE_REMOTE_PKG) != null) {
+            addInputRow(rows, close, R.drawable.ic_remote, "Phone Remote", -1, this::openPhoneRemote);
+        }
 
         // Row 4: Sound Effects
         String currentSoundTheme = SoundEffects.getActiveTheme(this);
@@ -2179,10 +2232,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     private void showSoundEffectsDialog() {
         final String[] soundOptions = new String[]{
-                "🎮 PlayStation 5 (Lalai / Default Chime)",
+                "🎮 PlayStation 5 (Default Chime)",
                 "🕹️ Nintendo Switch (Click & Snap Pop)",
                 "🟩 Xbox Series X/S (Warm Harmonic Chime)",
-                "🔇 Matikan Bunyi (Off / Muted)"
+                "🔇 Off (Muted)"
         };
 
         final String[] soundKeys = new String[]{
@@ -2202,7 +2255,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
-        builder.setTitle("🔊 Pilih Kesan Bunyi (Sound Effects)");
+        builder.setTitle("🔊 Sound Effects");
         builder.setSingleChoiceItems(soundOptions, selectedIndex, (dialog, which) -> {
             dialog.dismiss();
             String chosenKey = soundKeys[which];
@@ -2210,14 +2263,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             String displayName = SoundEffects.getThemeDisplayName(chosenKey);
 
             if (SoundEffects.THEME_OFF.equalsIgnoreCase(chosenKey)) {
-                Toast.makeText(MainActivity.this, "🔇 Kesan Bunyi Dimatikan", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "🔇 Sound effects off", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(MainActivity.this, "🔊 Kesan Bunyi: " + displayName, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "🔊 Sound effects: " + displayName, Toast.LENGTH_SHORT).show();
                 // Play sample of the selected theme
                 handler.postDelayed(() -> SoundEffects.playSelect(), 120);
             }
         });
-        builder.setNegativeButton("Tutup / Cancel", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
         AlertDialog dialog = builder.create();
         dialog.show();
     }
@@ -2238,48 +2291,48 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         List<String> catList = new ArrayList<>();
         List<String> keyList = new ArrayList<>();
 
-        catList.add("🌿 Natural / Alam Semula Jadi");
+        catList.add("🌿 Natural");
         keyList.add("Natural");
 
         String malaysiaLabel;
         if (currentKey.startsWith("Malaysia_")) {
-            malaysiaLabel = "🇲🇾 Malaysia: " + getStateDisplayName(currentKey) + " (Tukar Negeri ▶)";
+            malaysiaLabel = "🇲🇾 Malaysia: " + getStateDisplayName(currentKey) + " (Change State ▶)";
         } else if ("Malaysia".equalsIgnoreCase(currentKey)) {
-            malaysiaLabel = "🇲🇾 Malaysia: Semua Negeri (Tukar Negeri ▶)";
+            malaysiaLabel = "🇲🇾 Malaysia: All States (Change State ▶)";
         } else {
-            malaysiaLabel = "🇲🇾 Malaysia / Mengikut Negeri (Pilih Negeri ▶)";
+            malaysiaLabel = "🇲🇾 Malaysia by State (Choose State ▶)";
         }
         catList.add(malaysiaLabel);
         keyList.add("MALAYSIA_PICKER");
 
-        catList.add("🏙️ Skyscraper / Pencakar Langit & Bandar");
+        catList.add("🏙️ Skyscrapers & Cities");
         keyList.add("Skyscraper");
 
-        catList.add("🌌 Deep Space / Angkasa & Kosmos");
+        catList.add("🌌 Deep Space");
         keyList.add("Space");
 
-        catList.add("🌊 Ocean & Coastal / Lautan & Pantai");
+        catList.add("🌊 Ocean & Coastal");
         keyList.add("Ocean");
 
-        catList.add("🔲 Minimalist Dark / Minimalis Gelap");
+        catList.add("🔲 Minimalist Dark");
         keyList.add("Minimalist");
 
         if (hasCustom) {
             boolean isSingle = getSharedPreferences("wallpaper_prefs", MODE_PRIVATE).getBoolean("custom_single_mode", false);
             String customLabel = isSingle
-                    ? "📱 Custom / 1 Gambar Kekal (" + customFiles.length + " foto)"
-                    : "📱 Custom / Putar Semua Gambar (" + customFiles.length + " foto)";
+                    ? "📱 Custom / 1 Locked Photo (" + customFiles.length + " photos)"
+                    : "📱 Custom / Rotate All Photos (" + customFiles.length + " photos)";
             catList.add(customLabel);
             keyList.add("Custom");
 
-            catList.add("🗑️ Urus Gambar Dimuat Naik (Pilih / Padam)");
+            catList.add("🗑️ Manage Uploaded Photos (Choose / Delete)");
             keyList.add("MANAGE_CUSTOM");
         }
 
         catList.add("📲 Upload Wallpaper via Phone (QR Code)");
         keyList.add("UPLOAD_QR");
 
-        catList.add("🔀 Tukar Gambar Seterusnya (Next)");
+        catList.add("🔀 Next Picture");
         keyList.add("NEXT");
 
         final String[] categories = catList.toArray(new String[0]);
@@ -2294,14 +2347,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
-        builder.setTitle("🖼️ Pilih Koleksi Wallpaper");
+        builder.setTitle("🖼️ Choose Wallpaper Collection");
         builder.setSingleChoiceItems(categories, selectedIndex, (dialog, which) -> {
             dialog.dismiss();
             String chosenKey = keys[which];
             if ("NEXT".equals(chosenKey)) {
                 if (wallpapers != null && !wallpapers.isEmpty()) {
                     showNextWallpaper(true);
-                    Toast.makeText(MainActivity.this, "Menukar ke gambar seterusnya...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Changing to the next picture...", Toast.LENGTH_SHORT).show();
                 }
             } else if ("MALAYSIA_PICKER".equals(chosenKey)) {
                 showMalaysiaStateSelectorDialog();
@@ -2313,13 +2366,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 switchWallpaperCategory(chosenKey);
             }
         });
-        builder.setNegativeButton("Tutup / Cancel", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
         AlertDialog dialog = builder.create();
         dialog.show();
     }
 
     private String getStateDisplayName(String key) {
-        if (key == null) return "Semua Negeri";
+        if (key == null) return "All States";
         if (key.equalsIgnoreCase("Malaysia_Johor")) return "Johor";
         if (key.equalsIgnoreCase("Malaysia_Kedah")) return "Kedah";
         if (key.equalsIgnoreCase("Malaysia_Kelantan")) return "Kelantan";
@@ -2328,32 +2381,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (key.equalsIgnoreCase("Malaysia_Pahang")) return "Pahang";
         if (key.equalsIgnoreCase("Malaysia_Perak")) return "Perak";
         if (key.equalsIgnoreCase("Malaysia_Perlis")) return "Perlis";
-        if (key.equalsIgnoreCase("Malaysia_PulauPinang")) return "Pulau Pinang";
+        if (key.equalsIgnoreCase("Malaysia_PulauPinang")) return "Penang";
         if (key.equalsIgnoreCase("Malaysia_Sabah")) return "Sabah";
         if (key.equalsIgnoreCase("Malaysia_Sarawak")) return "Sarawak";
         if (key.equalsIgnoreCase("Malaysia_Selangor")) return "Selangor";
         if (key.equalsIgnoreCase("Malaysia_Terengganu")) return "Terengganu";
         if (key.equalsIgnoreCase("Malaysia_WP")) return "Wilayah Persekutuan";
-        return "Semua Negeri";
+        return "All States";
     }
 
     private void showMalaysiaStateSelectorDialog() {
         final String[] stateLabels = new String[]{
-                "🇲🇾 Semua Negeri di Malaysia (Putar Keseluruhan)",
-                "📍 Johor — Pulau Rawa & Pesisir Pantai",
-                "📍 Kedah — Langkawi Sky Bridge & Sawah Padi",
+                "🇲🇾 All States in Malaysia (Rotate All)",
+                "📍 Johor — Pulau Rawa & Coastline",
+                "📍 Kedah — Langkawi Sky Bridge & Paddy Fields",
                 "📍 Kelantan — Pantai Cahaya Bulan & Senok",
-                "📍 Melaka — Bandaraya Bersejarah & Sungai Melaka",
-                "📍 Negeri Sembilan — Pantai Port Dickson & Teluk Kemang",
-                "📍 Pahang — Ladang Teh Cameron Highlands",
-                "📍 Perak — Pekan Warisan Ipoh & Kellie's Castle",
+                "📍 Melaka — Historic City & Melaka River",
+                "📍 Negeri Sembilan — Port Dickson Beach & Teluk Kemang",
+                "📍 Pahang — Cameron Highlands Tea Plantation",
+                "📍 Perak — Ipoh Heritage Town & Kellie's Castle",
                 "📍 Perlis — Gua Kelam & Banjaran Nakawan",
-                "📍 Pulau Pinang — Georgetown UNESCO & Kek Lok Si",
-                "📍 Sabah — Puncak Gunung Kinabalu",
+                "📍 Penang — George Town UNESCO & Kek Lok Si",
+                "📍 Sabah — Mount Kinabalu Summit",
                 "📍 Sarawak — Pinnacles Mulu & Kuching Waterfront",
-                "📍 Selangor — Batu Caves & Masjid Negeri Shah Alam",
-                "📍 Terengganu — Pulau Perhentian & Masjid Kristal",
-                "📍 Wilayah Persekutuan — Menara Berkembar KLCC"
+                "📍 Selangor — Batu Caves & Shah Alam State Mosque",
+                "📍 Terengganu — Perhentian Islands & Crystal Mosque",
+                "📍 Federal Territory — KLCC Twin Towers"
         };
 
         final String[] stateKeys = new String[]{
@@ -2384,13 +2437,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
-        builder.setTitle("🇲🇾 Koleksi Malaysia — Pilih Negeri");
+        builder.setTitle("🇲🇾 Malaysia Collection — Choose State");
         builder.setSingleChoiceItems(stateLabels, selectedIndex, (dialog, which) -> {
             dialog.dismiss();
             String chosenKey = stateKeys[which];
             switchWallpaperCategory(chosenKey);
         });
-        builder.setNegativeButton("Kembali / Back", (dialog, which) -> {
+        builder.setNegativeButton("Back", (dialog, which) -> {
             dialog.dismiss();
             showWallpaperDialog();
         });
@@ -2401,7 +2454,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private void switchWallpaperCategory(String category) {
         getSharedPreferences("wallpaper_prefs", MODE_PRIVATE).edit().putString("active_category", category).apply();
         String displayLabel = category.startsWith("Malaysia_") ? ("Malaysia (" + getStateDisplayName(category) + ")") : category;
-        Toast.makeText(this, "Kategori: " + displayLabel, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Category: " + displayLabel, Toast.LENGTH_SHORT).show();
 
         if ("Natural".equalsIgnoreCase(category)) {
             placesMode = true;
@@ -2450,7 +2503,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             wallpapers = matching;
             showNextWallpaper(true);
         } else {
-            Toast.makeText(this, "Memuat turun 4K Wallpaper " + displayLabel + "...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Downloading 4K wallpaper " + displayLabel + "...", Toast.LENGTH_SHORT).show();
             new Thread(() -> {
                 boolean downloaded = OnlineWallpapers.syncCategory(getApplicationContext(), category);
                 handler.post(() -> {
@@ -2483,7 +2536,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
 
         if (!started) {
-            Toast.makeText(this, "Ralat: Tidak dapat memulakan pelayan muat naik tempatan.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Error: couldn't start the local upload server.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -2500,7 +2553,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         // Title
         TextView title = new TextView(this);
-        title.setText("📲 Muat Naik Wallpaper Dari Telefon");
+        title.setText("📲 Upload Wallpaper From Phone");
         title.setTextColor(0xFFFFFFFF);
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 19);
         title.setTypeface(Typeface.DEFAULT_BOLD);
@@ -2509,7 +2562,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         // Subtitle instructions
         TextView sub = new TextView(this);
-        sub.setText("Sambungkan telefon pada Wi-Fi yang sama, kemudian imbas kod QR di bawah:");
+        sub.setText("Connect your phone to the same Wi-Fi, then scan the QR code below:");
         sub.setTextColor(0xFF94A3B8);
         sub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         sub.setGravity(Gravity.CENTER);
@@ -2549,7 +2602,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         // Status text
         qrStatusText = new TextView(this);
-        qrStatusText.setText("📡 Menunggu imbasan kamera atau fail dari telefon...");
+        qrStatusText.setText("📡 Waiting for a scan or a photo from your phone...");
         qrStatusText.setTextColor(0xFFCBD5E1);
         qrStatusText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         qrStatusText.setGravity(Gravity.CENTER);
@@ -2558,7 +2611,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         // Close button
         Button btnClose = new Button(this);
-        btnClose.setText("Tutup / Cancel");
+        btnClose.setText("Cancel");
         btnClose.setTextColor(0xFFFFFFFF);
         btnClose.setBackgroundResource(R.drawable.pill_bg);
         btnClose.setFocusable(true);
@@ -2629,7 +2682,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private void onCustomWallpaperUploaded(File file) {
         runOnUiThread(() -> {
             SoundEffects.playSelect();
-            Toast.makeText(this, "✅ Wallpaper berjaya dimuat naik dari telefon!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "✅ Wallpaper uploaded from your phone!", Toast.LENGTH_LONG).show();
 
             getSharedPreferences("wallpaper_prefs", MODE_PRIVATE).edit()
                     .putString("active_category", "Custom")
@@ -2656,7 +2709,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             showNextWallpaper(true);
 
             if (qrStatusText != null) {
-                qrStatusText.setText("🎉 Berjaya Diterima & Dipaparkan di TV!");
+                qrStatusText.setText("🎉 Received and showing on the TV!");
                 qrStatusText.setTextColor(0xFF4ADE80);
             }
             if (qrUrlText != null) {
@@ -2726,7 +2779,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                 wallpapers = new ArrayList<>(Arrays.asList(files));
                 getSharedPreferences("wallpaper", MODE_PRIVATE).edit().putInt("index", -1).apply();
                 showNextWallpaper(true);
-                Toast.makeText(this, "🔄 Mod Putar Semua Wallpaper Aktif (" + files.length + " foto)", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "🔄 Rotating all wallpapers (" + files.length + " photos)", Toast.LENGTH_SHORT).show();
             } else {
                 switchWallpaperCategory("Natural");
             }
@@ -2753,13 +2806,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     wallpapers = new ArrayList<>(Arrays.asList(files));
                     getSharedPreferences("wallpaper", MODE_PRIVATE).edit().putInt("index", -1).apply();
                     showNextWallpaper(true);
-                    Toast.makeText(this, "🗑️ Gambar dipadam. Tinggal " + files.length + " foto.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "🗑️ Photo deleted. " + files.length + " photos left.", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(this, "Semua gambar telah dipadam. Beralih ke Natural.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "All photos deleted. Switching to Natural.", Toast.LENGTH_SHORT).show();
                     switchWallpaperCategory("Natural");
                 }
             } else {
-                Toast.makeText(this, "🗑️ Gambar dipadam dari simpanan.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "🗑️ Photo deleted from storage.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -2775,7 +2828,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             if ("Custom".equalsIgnoreCase(activeCat)) {
                 switchWallpaperCategory("Natural");
             }
-            Toast.makeText(this, "🧹 Semua gambar muat naik telah dibersihkan.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "🧹 All uploaded photos cleared.", Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -2783,7 +2836,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         File customDir = new File(getFilesDir(), "custom_wallpapers");
         File[] files = customDir.listFiles((dir, name) -> name.endsWith(".jpg") || name.endsWith(".png") || name.endsWith(".jpeg"));
         if (files == null || files.length == 0) {
-            Toast.makeText(this, "Tiada gambar dimuat naik dijumpai.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No uploaded photos found.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -2796,15 +2849,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         List<Runnable> actions = new ArrayList<>();
 
         // Quick Mode Actions at top
-        items.add("🔄 Putar Semua Gambar (Slideshow Mod)");
+        items.add("🔄 Rotate All Photos (Slideshow)");
         actions.add(this::onCustomWallpaperSlideshow);
 
-        items.add("🗑️ Padam Semua Gambar (Kosongkan)");
+        items.add("🗑️ Delete All Photos");
         actions.add(() -> {
             new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-                    .setTitle("⚠️ Padam Semua Gambar?")
-                    .setMessage("Adakah anda pasti ingin memadam semua " + files.length + " gambar yang dimuat naik?")
-                    .setPositiveButton("Ya, Padam Semua", (d, w) -> {
+                    .setTitle("⚠️ Delete All Photos?")
+                    .setMessage("Delete all " + files.length + " uploaded photos?")
+                    .setPositiveButton("Yes, Delete All", (d, w) -> {
                         for (File f : files) f.delete();
                         onCustomWallpaperCleared();
                     })
@@ -2812,7 +2865,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                     .show();
         });
 
-        SimpleDateFormat sdf = new SimpleDateFormat("d MMM, HH:mm", Locale.getDefault());
+        SimpleDateFormat sdf = new SimpleDateFormat("d MMM, h:mm a", Locale.US);
         for (File f : files) {
             double kb = f.length() / 1024.0;
             String sizeStr = kb > 1024 ? String.format(Locale.ROOT, "%.1f MB", kb / 1024.0) : String.format(Locale.ROOT, "%.0f KB", kb);
@@ -2823,22 +2876,22 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
-        builder.setTitle("📱 Pengurus Gambar TV (" + files.length + " Foto)");
+        builder.setTitle("📱 TV Photo Manager (" + files.length + " Photos)");
         builder.setItems(items.toArray(new String[0]), (dialog, which) -> {
             if (which >= 0 && which < actions.size()) {
                 actions.get(which).run();
             }
         });
-        builder.setNegativeButton("Tutup", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton("Close", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
 
     private void showSingleCustomActionDialog(File file) {
         String[] actions = {
-                "📌 Jadikan Wallpaper Tunggal (Kunci Gambar Ini)",
-                "🗑️ Padam Gambar Ini",
-                "🧹 Simpan Gambar Ini Sahaja & Padam Yang Lain",
-                "⬅️ Kembali"
+                "📌 Use as Only Wallpaper (Lock This Photo)",
+                "🗑️ Delete This Photo",
+                "🧹 Keep Only This Photo & Delete the Rest",
+                "⬅️ Back"
         };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
@@ -2863,7 +2916,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                         }
                     }
                     onCustomWallpaperSelected(file);
-                    Toast.makeText(this, "🧹 Gambar lain dipadam. Gambar ini dikekalkan.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "🧹 Other photos deleted. This one was kept.", Toast.LENGTH_SHORT).show();
                     break;
                 case 3: // Back
                     showCustomWallpaperManagerDialog();
@@ -2888,15 +2941,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
-        builder.setTitle("📍 Pilih Stesen Jerebu JAS / APIMS");
+        builder.setTitle("📍 Choose Air Quality Station (DOE APIMS)");
         builder.setSingleChoiceItems(items, selectedIndex, (dialog, which) -> {
             AppLocationManager.Station chosen = stations.get(which);
             AppLocationManager.setStation(MainActivity.this, chosen);
             dialog.dismiss();
-            Toast.makeText(MainActivity.this, "Stesen Jerebu: " + chosen.name, Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Air quality station: " + chosen.name, Toast.LENGTH_SHORT).show();
             refreshLocationDependentData();
         });
-        builder.setNegativeButton("Tutup / Cancel", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
         AlertDialog dialog = builder.create();
         dialog.show();
     }
@@ -2915,15 +2968,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
-        builder.setTitle("🕌 Pilih Zon Waktu Solat JAKIM");
+        builder.setTitle("🕌 Choose JAKIM Prayer Zone");
         builder.setSingleChoiceItems(items, selectedIndex, (dialog, which) -> {
             PrayerTimes.PrayerZone chosen = zones.get(which);
             PrayerTimes.setPrayerZone(MainActivity.this, chosen);
             dialog.dismiss();
-            Toast.makeText(MainActivity.this, "Zon Solat: " + chosen.name, Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Prayer zone: " + chosen.name, Toast.LENGTH_SHORT).show();
             refreshLocationDependentData();
         });
-        builder.setNegativeButton("Tutup / Cancel", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
         AlertDialog dialog = builder.create();
         dialog.show();
     }
@@ -2938,7 +2991,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         Runnable close = () -> closeMenu(false);
 
         // Header: Active Prayer Zone
-        addInputRow(rows, close, R.drawable.ic_settings, "Waktu Solat " + PrayerTimes.getShortZoneName(this), TvInputManager.INPUT_STATE_CONNECTED, () -> {});
+        addInputRow(rows, close, R.drawable.ic_settings, "Prayer Times " + PrayerTimes.getShortZoneName(this), TvInputManager.INPUT_STATE_CONNECTED, () -> {});
 
         // Date row: Islamic Hijri
         addInputRow(rows, close, R.drawable.ic_input, PrayerTimes.getHijriDate(), -1, () -> {});
@@ -2953,8 +3006,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         addSeparator(rows);
 
-        // Tutup
-        addInputRow(rows, close, R.drawable.ic_move, "Tutup", -1, () -> {
+        // Close
+        addInputRow(rows, close, R.drawable.ic_move, "Close", -1, () -> {
             SoundEffects.playSelect();
             closeMenu(true);
         });
@@ -2970,7 +3023,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         View row = getLayoutInflater().inflate(R.layout.item_input, rows, false);
         ((ImageView) row.findViewById(R.id.icon)).setImageResource(R.drawable.ic_input);
         TextView title = row.findViewById(R.id.title);
-        title.setText(name + (isNext ? " (Seterusnya)" : ""));
+        title.setText(name + (isNext ? " (Next)" : ""));
         TextView status = row.findViewById(R.id.status);
         View dot = row.findViewById(R.id.dot);
         status.setText(time);
@@ -2994,11 +3047,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         long idleMs = android.os.SystemClock.elapsedRealtime() - lastUserInteraction;
         if (idleMs >= TV_SLEEP_TIMEOUT_MS) {
             turnOffTv();
-        } else if (idleMs >= SCREENSAVER_TIMEOUT_MS && !screensaverActive) {
+        } else if (idleMs >= SCREENSAVER_TIMEOUT_MS && !screensaverActive && !usePhotosScreensaver()) {
+            // With Google Photos chosen, the TV's own screensaver starts on its timeout instead.
             showNightstandScreensaver();
         } else if (screensaverActive && screensaverView != null) {
             updateNightstandScreensaver();
         }
+    }
+
+    /**
+     * The idle screen on request (Home on Home, Back twice): Glass TV's clock, or with Google Photos
+     * chosen, the TV's own screensaver, started through System UI's "start now" screen.
+     */
+    private void startIdleScreen() {
+        if (usePhotosScreensaver()) {
+            // Set it again first: whatever the TV last had, the screensaver started is the chosen one.
+            String dream = systemDreamComponent(getContentResolver());
+            putSetting(() -> Settings.Secure.putString(getContentResolver(), "screensaver_components", dream));
+            try {
+                startActivity(new Intent().setComponent(new ComponentName("com.android.systemui",
+                        "com.android.systemui.Somnambulator")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                return;
+            } catch (ActivityNotFoundException | SecurityException e) {
+                android.util.Log.w("TvHome", "Can't start the TV's screensaver, showing the clock: " + e);
+            }
+        }
+        showNightstandScreensaver();
     }
 
     private void showNightstandScreensaver() {
@@ -3038,43 +3112,20 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             content.setTranslationY(0f);
         }
 
-        // iPhone StandBy Wind Down Mode: 10:00 PM (22:00) to 6:00 AM (06:00) -> Red Monochrome
-        java.util.Calendar cal = java.util.Calendar.getInstance();
-        int hour = cal.get(java.util.Calendar.HOUR_OF_DAY);
-        boolean isNightMode = (hour >= 22 || hour < 6);
-
+        // White on a frosted glass card at every hour (the layout's nightstand_glass background).
         TextView clock = screensaverView.findViewById(R.id.nightstandClock);
         TextView ampm = screensaverView.findViewById(R.id.nightstandAmPm);
         TextView date = screensaverView.findViewById(R.id.nightstandDate);
         TextView hint = screensaverView.findViewById(R.id.nightstandHint);
-
-        if (isNightMode) {
-            int red = 0xFFFF453A;
-            if (clock != null) clock.setTextColor(red);
-            if (ampm != null) ampm.setTextColor(0xCCFF453A);
-            if (date != null) date.setTextColor(0xE6FF453A);
-            if (hijri != null) hijri.setTextColor(0xE6FF453A);
-            if (prayer != null) {
-                prayer.setTextColor(red);
-                android.graphics.drawable.GradientDrawable redPill = new android.graphics.drawable.GradientDrawable();
-                redPill.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-                redPill.setColor(0x26FF453A);
-                redPill.setStroke((int) (1 * density), 0x59FF453A);
-                redPill.setCornerRadius(21 * density);
-                prayer.setBackground(redPill);
-            }
-            if (hint != null) hint.setTextColor(0x55FF453A);
-        } else {
-            if (clock != null) clock.setTextColor(0xFFFFFFFF);
-            if (ampm != null) ampm.setTextColor(0xB3FFFFFF);
-            if (date != null) date.setTextColor(0xE6FFFFFF);
-            if (hijri != null) hijri.setTextColor(0xD9E6E0D2);
-            if (prayer != null) {
-                prayer.setTextColor(0xFFFFFFFF);
-                prayer.setBackgroundResource(R.drawable.pill_bg);
-            }
-            if (hint != null) hint.setTextColor(0x4DFFFFFF);
+        if (clock != null) clock.setTextColor(0xFFFFFFFF);
+        if (ampm != null) ampm.setTextColor(0xB3FFFFFF);
+        if (date != null) date.setTextColor(0xE6FFFFFF);
+        if (hijri != null) hijri.setTextColor(0xD9E6E0D2);
+        if (prayer != null) {
+            prayer.setTextColor(0xFFFFFFFF);
+            prayer.setBackgroundResource(R.drawable.pill_bg);
         }
+        if (hint != null) hint.setTextColor(0x4DFFFFFF);
     }
 
     private void dismissScreensaver() {
@@ -3101,19 +3152,86 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
     }
 
+    /** The idle screen: Glass TV's own clock (nightstand), or the TV's screensaver such as Google Photos. */
+    private boolean usePhotosScreensaver() {
+        String fallback = config != null ? config.screensaver : SCREENSAVER_NIGHTSTAND;   // the theme's choice
+        return SCREENSAVER_PHOTOS.equals(getSharedPreferences("screensaver", MODE_PRIVATE)
+                .getString("mode", fallback));
+    }
+
+    /**
+     * The system screensaver the TV had before Glass TV, remembered the first time it is seen, so the
+     * Google Photos option can hand the idle screen back to it. Google TV's ambient mode if none was seen.
+     */
+    private String systemDreamComponent(android.content.ContentResolver cr) {
+        android.content.SharedPreferences prefs = getSharedPreferences("screensaver", MODE_PRIVATE);
+        String current = Settings.Secure.getString(cr, "screensaver_components");
+        if (current != null && !current.isEmpty() && !current.startsWith(getPackageName() + "/")) {
+            prefs.edit().putString("system_dream", current).apply();
+        }
+        return prefs.getString("system_dream", GOOGLE_AMBIENT_DREAM);
+    }
+
     private void ensureSystemScreensaverAndSleepSettings() {
+        boolean photos = usePhotosScreensaver();
         new Thread(() -> {
-            try {
-                android.content.ContentResolver cr = getContentResolver();
-                // 10 minutes idle -> screensaver (600,000 ms)
-                android.provider.Settings.System.putInt(cr, "screen_off_timeout", 600000);
-                // 2 hours after screensaver -> TV off (10m + 2h = 7,800,000 ms)
-                android.provider.Settings.Secure.putInt(cr, "sleep_timeout", 7800000);
-                android.provider.Settings.Secure.putInt(cr, "screensaver_enabled", 1);
-                android.provider.Settings.Secure.putString(cr, "screensaver_components", "com.gathin.tvhome/.ClockDream");
-            } catch (Exception ignored) {
-            }
+            android.content.ContentResolver cr = getContentResolver();
+            String dream = photos ? systemDreamComponent(cr) : getPackageName() + "/.ClockDream";
+            if (!photos) systemDreamComponent(cr);   // remember it before it is replaced
+            // Each write on its own: without WRITE_SETTINGS the first one throws, and the
+            // screensaver ones (WRITE_SECURE_SETTINGS, granted at install) must still go through.
+            putSetting(() -> Settings.System.putInt(cr, "screen_off_timeout", 600000));   // 10 min idle -> screensaver
+            putSetting(() -> Settings.Secure.putInt(cr, "sleep_timeout", 7800000));       // 2 h after that -> TV off
+            putSetting(() -> Settings.Secure.putInt(cr, "screensaver_enabled", 1));
+            putSetting(() -> Settings.Secure.putString(cr, "screensaver_components", dream));
         }, "system-timeout-sync").start();
+    }
+
+    private static void putSetting(Runnable write) {
+        try {
+            write.run();
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void showScreensaverDialog() {
+        final String[] options = {"🕰️ Glass TV Clock (Nightstand)", "🖼️ Google Photos (TV Screensaver)"};
+        final String[] keys = {SCREENSAVER_NIGHTSTAND, SCREENSAVER_PHOTOS};
+        int selected = usePhotosScreensaver() ? 1 : 0;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
+        builder.setTitle("💤 Screensaver");
+        builder.setSingleChoiceItems(options, selected, (dialog, which) -> {
+            dialog.dismiss();
+            getSharedPreferences("screensaver", MODE_PRIVATE).edit().putString("mode", keys[which]).apply();
+            ensureSystemScreensaverAndSleepSettings();
+            Toast.makeText(MainActivity.this, "Screensaver: " + options[which], Toast.LENGTH_SHORT).show();
+        });
+        // Google TV's own album picker and account switcher: the albums shown are the chosen account's.
+        // With the stock launcher disabled they need it on for a moment (see StockScreens).
+        // Three buttons at most, so with these Back closes the dialog instead of Cancel.
+        if (StockScreens.available(this)) {
+            builder.setNeutralButton("Photo Settings", (dialog, which) -> StockScreens.open(this, StockScreens.SETTINGS));
+            builder.setNegativeButton("Choose Albums", (dialog, which) -> StockScreens.open(this, StockScreens.ALBUMS));
+            builder.setPositiveButton("Switch Account", (dialog, which) -> StockScreens.open(this, StockScreens.ACCOUNTS));
+        } else {
+            Intent photosSettings = new Intent("dreamx.two.panel.SETTINGS");
+            if (photosSettings.resolveActivity(getPackageManager()) != null) {
+                builder.setNeutralButton("Choose Albums", (dialog, which) -> open(photosSettings));
+            }
+            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+        }
+        builder.show();
+    }
+
+    /** Opens the Phone Remote add-on (its screen shows the QR code to scan), if it is installed. */
+    private void openPhoneRemote() {
+        Intent i = getPackageManager().getLeanbackLaunchIntentForPackage(PHONE_REMOTE_PKG);
+        if (i == null) i = getPackageManager().getLaunchIntentForPackage(PHONE_REMOTE_PKG);
+        if (i == null) {
+            Toast.makeText(this, "Phone Remote isn't installed", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        open(i);
     }
 
 
@@ -3198,6 +3316,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
     /** The glass menu while one is open (Inputs, or an app's), and what it opened from. */
     private View openMenu;
+    /** The next menu opens on its last row instead of its first (set just before showing it). */
+    private boolean menuFocusLast;
     private View menuAnchor;
     private final int[] menuAt = new int[2], menuGliderAt = new int[2];
 
@@ -3311,6 +3431,10 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             lp.topMargin = Math.max(0, menuAt[1] - menuGliderAt[1] - gap - panel.getMeasuredHeight());
         } else {
             lp.topMargin = menuAt[1] - menuGliderAt[1] + anchor.getHeight() + gap;
+            // A long menu would run off the bottom of the screen, where its last rows can't take focus:
+            // lift it until it fits, even if it then covers the button it opened from.
+            panel.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.UNSPECIFIED);
+            lp.topMargin = Math.max(gap, Math.min(lp.topMargin, root.getHeight() - gap - panel.getMeasuredHeight()));
         }
         root.addView(panel, lp);
         openMenu = panel;
@@ -3318,29 +3442,37 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         // Focus stays in the menu until it closes. Leaving it towards the anchor closes it, and the
         // selection glides back into what it opened from.
-        View first = null, last = null;
+        List<View> focusable = new ArrayList<>();
         for (int i = 0; i < rows.getChildCount(); i++) {
             View row = rows.getChildAt(i);
             if (!row.isFocusable()) continue;
-            if (first == null) first = row;
-            last = row;
+            focusable.add(row);
             row.setOnFocusChangeListener((v, has) -> {
                 if (has) glideToMenuRow(panel, rows, v);
             });
         }
-        final View top = first, bottom = last;
-        for (int i = 0; i < rows.getChildCount(); i++) {
-            View row = rows.getChildAt(i);
-            if (!row.isFocusable()) continue;
+        if (focusable.isEmpty()) return;
+        final View top = focusable.get(0), bottom = focusable.get(focusable.size() - 1);
+        for (int i = 0; i < focusable.size(); i++) {
+            View row = focusable.get(i);
+            // Up and down step row by row ourselves, so the selection never leaves the menu early.
+            final View prev = i > 0 ? focusable.get(i - 1) : null;
+            final View next = i < focusable.size() - 1 ? focusable.get(i + 1) : null;
             row.setOnKeyListener((v, keyCode, event) -> {
                 boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
                 switch (keyCode) {
                     case KeyEvent.KEYCODE_DPAD_UP:
-                        if (v != top) return false;
+                        if (prev != null) {
+                            if (down) prev.requestFocus();
+                            return true;
+                        }
                         if (down && !above) closeMenu(true);
                         return true;
                     case KeyEvent.KEYCODE_DPAD_DOWN:
-                        if (v != bottom) return false;
+                        if (next != null) {
+                            if (down) next.requestFocus();
+                            return true;
+                        }
                         if (down && above) closeMenu(true);
                         return true;
                     case KeyEvent.KEYCODE_DPAD_LEFT:
@@ -3370,7 +3502,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             rows.setTranslationY(slide * (1f - f));
         });
         in.start();
-        if (top != null) top.requestFocus();
+        View start = menuFocusLast ? bottom : top;
+        menuFocusLast = false;
+        if (start != null) start.requestFocus();
     }
 
     /**

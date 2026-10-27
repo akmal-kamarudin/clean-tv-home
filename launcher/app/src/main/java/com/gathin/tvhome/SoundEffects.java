@@ -24,8 +24,8 @@ final class SoundEffects {
     private static String activeTheme = THEME_PS5;
     private static boolean ready;
 
-    private static float navVolume = 0.65f;
-    private static float selectVolume = 0.85f;
+    private static float navVolume = 0.10f;
+    private static float selectVolume = 0.12f;
 
     private SoundEffects() {
     }
@@ -65,18 +65,18 @@ final class SoundEffects {
             if (THEME_SWITCH.equalsIgnoreCase(activeTheme)) {
                 navRes = R.raw.switch_nav;
                 selRes = R.raw.switch_select;
-                navVolume = 0.85f;
-                selectVolume = 0.95f;
+                navVolume = 0.10f;
+                selectVolume = 0.12f;
             } else if (THEME_XBOX.equalsIgnoreCase(activeTheme)) {
                 navRes = R.raw.xbox_nav;
                 selRes = R.raw.xbox_select;
-                navVolume = 0.75f;
-                selectVolume = 0.90f;
+                navVolume = 0.10f;
+                selectVolume = 0.12f;
             } else { // PS5 default
                 navRes = R.raw.ps5_nav;
                 selRes = R.raw.ps5_select;
-                navVolume = 0.65f;
-                selectVolume = 0.85f;
+                navVolume = 0.10f;
+                selectVolume = 0.12f;
             }
 
             soundNav = soundPool.load(context, navRes, 1);
@@ -112,7 +112,7 @@ final class SoundEffects {
         if (theme == null) return "PlayStation 5";
         if (THEME_SWITCH.equalsIgnoreCase(theme)) return "Nintendo Switch";
         if (THEME_XBOX.equalsIgnoreCase(theme)) return "Xbox Series X/S";
-        if (THEME_OFF.equalsIgnoreCase(theme)) return "Matikan Bunyi (Off)";
+        if (THEME_OFF.equalsIgnoreCase(theme)) return "Off";
         return "PlayStation 5";
     }
 

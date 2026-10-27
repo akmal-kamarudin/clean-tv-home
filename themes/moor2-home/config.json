@@ -1,0 +1,8 @@
+{
+  "dock_apps": ["com.netflix.ninja", "io.gh.reisxd.tizentube.cobalt", "com.nuvio.tv", "my.gov.rtm.tv", "my.com.tonton.screen"],
+  "columns": 5,
+  "live_tv_package": "com.mitv.livetv",
+  "screensaver": "photos",
+  "cache_clean_days": 10,
+  "ambient_glow": false
+}

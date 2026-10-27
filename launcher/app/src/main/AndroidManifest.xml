@@ -24,6 +24,12 @@
     <!-- Android 11+ package visibility: lets the launcher list the TV apps it shows as tiles, and the
          apps that declare a module card (docs/specs/card.md). -->
     <queries>
+        <!-- Google TV's screensaver settings (Google Photos albums), opened from Home's Screensaver menu. -->
+        <intent>
+            <action android:name="dreamx.two.panel.SETTINGS" />
+        </intent>
+        <!-- The stock Google TV launcher, turned on briefly for its album picker and account switcher (StockScreens). -->
+        <package android:name="com.google.android.apps.tv.launcherx" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
@@ -41,6 +47,7 @@
     </queries>
 
     <application
+        android:name=".TvHomeApp"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:banner="@drawable/banner"

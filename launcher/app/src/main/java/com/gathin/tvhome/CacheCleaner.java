@@ -42,6 +42,9 @@ import java.security.spec.X509EncodedKeySpec;
  * cache folders (no app data, sign-ins or settings); it runs only while Home is idle on screen; and
  * when debugging is off or the prompt is declined it gives up quietly, tries at most once a day, and
  * stops asking after a few declines.
+ *
+ * {@link #exec} lends the same connection to {@link StockScreens}, only when someone picks Choose Albums or
+ * Switch Account; it never shows the prompt.
  */
 final class CacheCleaner {
     private static final String TAG = "TvHome.Clean";
@@ -110,7 +113,7 @@ final class CacheCleaner {
         final Context app = ctx.getApplicationContext();
         new Thread(() -> {
             try {
-                if (shell(app, false, null)) prefs(app).edit().putLong("seen", System.currentTimeMillis()).apply();
+                if (shell(app, false, null, null)) prefs(app).edit().putLong("seen", System.currentTimeMillis()).apply();
             } catch (Exception e) {
                 Log.i(TAG, "check-in failed: " + e);
             } finally {
@@ -124,7 +127,7 @@ final class CacheCleaner {
         try {
             // Once the prompt is answered the TV saves the key, but the connection that asked is not
             // always let through: a fresh one, with no second prompt, finds the key allowed.
-            if (shell(ctx, true, COMMAND) || shell(ctx, false, COMMAND)) {
+            if (shell(ctx, true, COMMAND, null) || shell(ctx, false, COMMAND, null)) {
                 long now = System.currentTimeMillis();
                 p.edit().putLong("cleaned", now).putLong("seen", now).putInt("declined", 0).apply();
                 Log.i(TAG, "cleared cached files, storage " + before + "% -> " + usedPercent() + "% used");
@@ -137,6 +140,20 @@ final class CacheCleaner {
             Log.i(TAG, "cannot reach the TV's debugging service: " + e);
         } catch (Exception e) {
             Log.w(TAG, "cache clean failed: " + e);
+        }
+    }
+
+    /**
+     * Runs a shell command through the same service and returns what it printed, or null when the TV
+     * has not allowed this app (it never shows the prompt) or cannot be reached. For {@link StockScreens}.
+     */
+    static String exec(Context ctx, String command) {
+        StringBuilder out = new StringBuilder();
+        try {
+            return shell(ctx, false, "shell:" + command, out) ? out.toString() : null;
+        } catch (Exception e) {
+            Log.i(TAG, "exec failed: " + e);
+            return null;
         }
     }
 
@@ -164,10 +181,12 @@ final class CacheCleaner {
             0x1a, 0x05, 0x00, 0x04, 0x14};
 
     /**
-     * Runs {@code command} ({@link #COMMAND}, or null to only connect). False when the TV did not let
-     * this app in; IOException when unreachable. {@code mayAsk} false never shows the prompt.
+     * Runs {@code command} ({@link #COMMAND}, or null to only connect), adding what it prints to
+     * {@code output} when given. False when the TV did not let this app in; IOException when
+     * unreachable. {@code mayAsk} false never shows the prompt.
      */
-    private static boolean shell(Context ctx, boolean mayAsk, String command) throws Exception {
+    private static boolean shell(Context ctx, boolean mayAsk, String command, StringBuilder output)
+            throws Exception {
         KeyPair keys = keys(ctx);
         try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress("127.0.0.1", PORT), 3000);
@@ -200,6 +219,7 @@ final class CacheCleaner {
             while (true) {
                 m = read(in);
                 if (m.cmd == WRTE) {
+                    if (output != null) output.append(new String(m.data, StandardCharsets.UTF_8));
                     send(out, OKAY, 1, m.arg0, null);
                 } else if (m.cmd == CLSE) {
                     send(out, CLSE, 1, m.arg0, null);

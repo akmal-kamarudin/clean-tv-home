@@ -13,6 +13,9 @@ import android.widget.Toast;
  * adb shell am broadcast -a com.gathin.tvhome.SET_LOCATION -p com.gathin.tvhome --es query "Putrajaya"
  * adb shell am broadcast -a com.gathin.tvhome.SET_LOCATION -p com.gathin.tvhome --es station_id "CA17W"
  * adb shell am broadcast -a com.gathin.tvhome.SET_LOCATION -p com.gathin.tvhome --ef lat 2.9158 --ef lon 101.6909
+ * The JAKIM zone normally follows the air-quality station; where the nearest station is in another
+ * zone (Kajang: Putrajaya's station, but zone SGR01) name it, with the place to show for it:
+ * adb shell am broadcast -a com.gathin.tvhome.SET_LOCATION -p com.gathin.tvhome --es station_id CA17W --es zone SGR01 --es zone_name Kajang
  */
 public class LocationBroadcastReceiver extends BroadcastReceiver {
     private static final String TAG = "TvHome.LocationReceiver";
@@ -54,18 +57,30 @@ public class LocationBroadcastReceiver extends BroadcastReceiver {
             AppLocationManager.setStation(context, matched);
             final String name = matched.getDisplayName();
             new Handler(Looper.getMainLooper()).post(() -> {
-                Toast.makeText(context, "📍 Lokasi TV: " + name, Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "📍 TV location: " + name, Toast.LENGTH_LONG).show();
             });
         } else if (lat != 0.0 && lon != 0.0) {
             PrayerTimes.clearManualZone(context);
-            String customName = query != null ? query : "Lokasi Tersuai";
+            String customName = query != null ? query : "Custom location";
             AppLocationManager.setCustomLocation(context, "CUSTOM", customName, customName, lat, lon);
             new Handler(Looper.getMainLooper()).post(() -> {
-                Toast.makeText(context, "📍 Lokasi TV: " + customName, Toast.LENGTH_LONG).show();
+                Toast.makeText(context, "📍 TV location: " + customName, Toast.LENGTH_LONG).show();
             });
         } else {
             Log.w(TAG, "No matching station found for: query=" + query + ", stationId=" + stationId);
             return;
+        }
+
+        String zone = intent.getStringExtra("zone");
+        if (zone != null) {
+            for (PrayerTimes.PrayerZone pz : PrayerTimes.getPresetZones()) {
+                if (!pz.code.equalsIgnoreCase(zone)) continue;
+                String zoneName = intent.getStringExtra("zone_name");
+                PrayerTimes.setPrayerZone(context, zoneName == null ? pz
+                        : new PrayerTimes.PrayerZone(pz.code, pz.state, zoneName, pz.lat, pz.lon));
+                Log.i(TAG, "Prayer zone set to " + pz.code);
+                break;
+            }
         }
 
         MainActivity main = MainActivity.getInstance();

@@ -13,7 +13,12 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:background="@drawable/nightstand_glass"
+        android:paddingStart="64dp"
+        android:paddingEnd="64dp"
+        android:paddingTop="40dp"
+        android:paddingBottom="36dp">
 
         <!-- StandBy Clock Display -->
         <LinearLayout
@@ -27,7 +32,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:format12Hour="h:mm"
-                android:format24Hour="HH:mm"
+                android:format24Hour="h:mm"
                 android:textColor="#FFFFFFFF"
                 android:textSize="110sp"
                 android:fontFamily="@font/outfit"
@@ -47,7 +52,7 @@
                 android:layout_marginBottom="26dp"
                 android:layout_gravity="bottom"
                 android:format12Hour="a"
-                android:format24Hour=""
+                android:format24Hour="a"
                 android:textColor="#B3FFFFFF"
                 android:textSize="22sp"
                 android:fontFamily="@font/outfit"
@@ -121,7 +126,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="36dp"
-            android:text="Tekan mana-mana butang untuk kembali"
+            android:text="Press any button to return"
             android:textColor="#4DFFFFFF"
             android:textSize="12sp"
             android:fontFamily="@font/outfit"

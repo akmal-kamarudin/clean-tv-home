@@ -39,13 +39,16 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1.2"
                     android:layout_marginEnd="32dp"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:clipChildren="false">
 
+                    <!-- Not clipped, so the station pill can grow when selected. -->
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:clipChildren="false">
 
                         <TextView
                             android:id="@+id/weatherLocation"
@@ -71,7 +74,7 @@
                             android:focusableInTouchMode="true"
                             android:fontFamily="@font/outfit"
                             android:fontVariationSettings="'wght' 600"
-                            android:text="📍 Tukar Stesen / Change"
+                            android:text="📍 Change Station"
                             android:textColor="#CBD5E1"
                             android:textSize="11sp" />
                     </LinearLayout>
@@ -356,7 +359,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
                 android:gravity="center"
-                android:text="Updated 7:40 PM  •  API: Jabatan Alam Sekitar (APIMS), reading at 7:00 PM  •  Weather and US AQI: Open-Meteo model"
+                android:text="Updated 7:40 PM  •  API: Department of Environment (APIMS), reading at 7:00 PM  •  Weather and US AQI: Open-Meteo model"
                 android:textColor="#64748B"
                 android:textSize="10sp"
                 android:fontFamily="@font/outfit"

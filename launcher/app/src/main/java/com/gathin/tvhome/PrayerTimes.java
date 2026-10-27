@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Clean Waktu Solat for Putrajaya (JAKIM Zone WLY01).
+ * Clean prayer times for Putrajaya (JAKIM Zone WLY01).
  * Fetches official JAKIM e-solat timetable, caches locally, and includes
  * an accurate solar-calculation fallback so it never fails offline.
  */
@@ -43,7 +43,7 @@ final class PrayerTimes {
     private static final double LONGITUDE = 101.6964;
     private static final double TIMEZONE = 8.0;
 
-    private static final String[] PRAYER_NAMES = {"Subuh", "Syuruk", "Zohor", "Asar", "Maghrib", "Isyak"};
+    private static final String[] PRAYER_NAMES = {"Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"};
     private static final String[] PRAYER_KEYS = {"fajr", "syuruk", "dhuhr", "asr", "maghrib", "isha"};
 
     private PrayerTimes() {
@@ -130,7 +130,7 @@ final class PrayerTimes {
         PRESET_ZONES.add(new PrayerZone("WLY02", "W.P.", "Labuan", 5.3347, 115.2289));
 
         // Selangor
-        PRESET_ZONES.add(new PrayerZone("SGR01", "Selangor", "Shah Alam, Petaling, Gombak, Sepang", 3.0683, 101.5058));
+        PRESET_ZONES.add(new PrayerZone("SGR01", "Selangor", "Shah Alam, Petaling, Gombak, Sepang, Hulu Langat, Hulu Selangor", 3.0683, 101.5058));
         PRESET_ZONES.add(new PrayerZone("SGR02", "Selangor", "Kuala Selangor, Sabak Bernam", 3.3500, 101.2500));
         PRESET_ZONES.add(new PrayerZone("SGR03", "Selangor", "Klang, Kuala Langat, Banting", 3.0108, 101.4081));
 
@@ -147,7 +147,7 @@ final class PrayerTimes {
         PRESET_ZONES.add(new PrayerZone("JHR04", "Johor", "Kluang, Mersing", 2.0306, 103.3214));
 
         // Pulau Pinang
-        PRESET_ZONES.add(new PrayerZone("PNG01", "Pulau Pinang", "Seluruh Negeri Pulau Pinang", 5.3942, 100.3983));
+        PRESET_ZONES.add(new PrayerZone("PNG01", "Pulau Pinang", "All of Penang", 5.3942, 100.3983));
 
         // Perak
         PRESET_ZONES.add(new PrayerZone("PRK02", "Perak", "Ipoh, Batu Gajah, Kampar", 4.6397, 101.1083));
@@ -256,7 +256,7 @@ final class PrayerTimes {
         if (loc.contains("kuala lumpur") || loc.contains("cheras") || loc.contains("batu muda")) return "WLY01";
         if (loc.contains("labuan")) return "WLY02";
         if (loc.contains("melaka") || loc.contains("alor gajah") || loc.contains("rambai")) return "MLK01";
-        if (loc.contains("petaling") || loc.contains("shah alam")) return "SGR01";
+        if (loc.contains("petaling") || loc.contains("shah alam") || loc.contains("kajang") || loc.contains("hulu langat")) return "SGR01";
         if (loc.contains("klang") || loc.contains("banting")) return "SGR03";
         if (loc.contains("seremban") || loc.contains("nilai") || loc.contains("port dickson")) return "NGS02";
         if (loc.contains("johor") || loc.contains("larkin") || loc.contains("pasir gudang")) return "JHR02";
@@ -318,7 +318,7 @@ final class PrayerTimes {
         }
         if (nextIdx == -1) nextIdx = 0;
 
-        SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        SimpleDateFormat timeFmt = new SimpleDateFormat("h:mm a", Locale.US);
         PrayerItem[] items = new PrayerItem[6];
         for (int i = 0; i < 6; i++) {
             items[i] = new PrayerItem(
@@ -344,7 +344,7 @@ final class PrayerTimes {
         long nowMs = now.getTimeInMillis();
         int nextIdx = -1;
 
-        // Find next prayer (skip Syuruk idx 1)
+        // Find next prayer (skip Sunrise idx 1)
         for (int i = 0; i < times.length; i++) {
             if (i == 1) continue;
             if (times[i] > nowMs) {
@@ -352,13 +352,13 @@ final class PrayerTimes {
                 break;
             }
         }
-        if (nextIdx == -1) nextIdx = 0; // After Isyak -> Subuh next morning
+        if (nextIdx == -1) nextIdx = 0; // After Isha -> Fajr next morning
 
-        SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        SimpleDateFormat timeFmt = new SimpleDateFormat("h:mm a", Locale.US);
 
         SpannableStringBuilder sb = new SpannableStringBuilder();
 
-        // LINE 1: LOCATION  •  SETERUSNYA: ASAR 16:18
+        // LINE 1: LOCATION  •  NEXT: ASR 4:18 PM
         String nextName = PRAYER_NAMES[nextIdx].toUpperCase(Locale.ROOT);
         long displayTimeMs = times[nextIdx];
         if (nextIdx == 0 && times[0] < nowMs) {
@@ -372,15 +372,15 @@ final class PrayerTimes {
 
         int l1Start = sb.length();
         String zoneHeader = getShortZoneName(context).toUpperCase(Locale.ROOT);
-        sb.append(zoneHeader).append("  •  SETERUSNYA: ").append(nextName).append(" ").append(nextTime);
+        sb.append(zoneHeader).append("  •  NEXT: ").append(nextName).append(" ").append(nextTime);
         int l1End = sb.length();
         sb.setSpan(new ForegroundColorSpan(0xFFFFFFFF), l1Start, l1End, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         sb.setSpan(new StyleSpan(Typeface.BOLD), l1Start, l1End, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         sb.append("\n");
 
-        // LINE 2: SUBUH 05:49  •  SYURUK 06:55  •  ZOHOR 13:01  •  ASAR 16:18  •  MAGHRIB 19:00  •  ISYAK 20:10
-        int[] displayIndices = {0, 1, 2, 3, 4, 5}; // Subuh, Syuruk, Zohor, Asar, Maghrib, Isyak
+        // LINE 2: FAJR 5:49 AM  •  SUNRISE 6:55 AM  •  DHUHR 1:01 PM  •  ASR 4:18 PM  •  MAGHRIB 7:00 PM  •  ISHA 8:10 PM
+        int[] displayIndices = {0, 1, 2, 3, 4, 5}; // Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha
         for (int i = 0; i < displayIndices.length; i++) {
             int idx = displayIndices[i];
             boolean isNext = (idx == nextIdx);
@@ -523,7 +523,7 @@ final class PrayerTimes {
         long nowMs = now.getTimeInMillis();
         int nextIdx = -1;
         for (int i = 0; i < times.length; i++) {
-            if (i == 1) continue; // Skip Syuruk (sunrise)
+            if (i == 1) continue; // Skip Sunrise
             if (times[i] > nowMs) {
                 nextIdx = i;
                 break;
@@ -549,7 +549,7 @@ final class PrayerTimes {
         long nowMs = now.getTimeInMillis();
         int nextIdx = -1;
         for (int i = 0; i < times.length; i++) {
-            if (i == 1) continue; // Skip Syuruk (sunrise)
+            if (i == 1) continue; // Skip Sunrise
             if (times[i] > nowMs) {
                 nextIdx = i;
                 break;
@@ -562,7 +562,7 @@ final class PrayerTimes {
             prayerName = PRAYER_NAMES[nextIdx];
             nextTimeMs = times[nextIdx];
         } else {
-            // All prayers today have passed (after Isyak) -> Next is tomorrow's Subuh
+            // All prayers today have passed (after Isha) -> Next is tomorrow's Fajr
             prayerName = PRAYER_NAMES[0];
             Calendar tomorrow = (Calendar) now.clone();
             tomorrow.add(Calendar.DAY_OF_MONTH, 1);
@@ -578,7 +578,7 @@ final class PrayerTimes {
         return prayerName + " • " + sdf.format(new Date(nextTimeMs)) + " (" + zone + ")";
     }
 
-    /** Returns Islamic Hijrah date (e.g. "11 Jamadilawal 1448H"). */
+    /** Returns Islamic Hijrah date (e.g. "11 Jumada al-Awwal 1448 AH"). */
     static String getHijriDate() {
         try {
             java.time.chrono.HijrahDate h = java.time.chrono.HijrahDate.now();
@@ -586,12 +586,12 @@ final class PrayerTimes {
             int month = h.get(java.time.temporal.ChronoField.MONTH_OF_YEAR);
             int year = h.get(java.time.temporal.ChronoField.YEAR);
             String[] months = {
-                "Muharram", "Safar", "Rabiulawal", "Rabiulakhir",
-                "Jamadilawal", "Jamadilakhir", "Rejab", "Syaaban",
-                "Ramadan", "Syawal", "Zulkaedah", "Zulhijjah"
+                "Muharram", "Safar", "Rabi al-Awwal", "Rabi al-Thani",
+                "Jumada al-Awwal", "Jumada al-Thani", "Rajab", "Shaban",
+                "Ramadan", "Shawwal", "Dhul Qadah", "Dhul Hijjah"
             };
-            String monthName = (month >= 1 && month <= 12) ? months[month - 1] : "Hijrah";
-            return day + " " + monthName + " " + year + "H";
+            String monthName = (month >= 1 && month <= 12) ? months[month - 1] : "Hijri";
+            return day + " " + monthName + " " + year + " AH";
         } catch (Exception e) {
             return "";
         }
