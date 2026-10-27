@@ -43,8 +43,44 @@ final class PrayerTimes {
     private static final double LONGITUDE = 101.6964;
     private static final double TIMEZONE = 8.0;
 
-    private static final String[] PRAYER_NAMES = {"Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"};
+    static final String[] NAMES = {"Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"};
+    private static final String[] PRAYER_NAMES = NAMES;
     private static final String[] PRAYER_KEYS = {"fajr", "syuruk", "dhuhr", "asr", "maghrib", "isha"};
+
+    static final class Day {
+        final int[] minutes;
+        final String hijri;
+
+        Day(int[] minutes, String hijri) {
+            this.minutes = minutes;
+            this.hijri = hijri;
+        }
+    }
+
+    static Day day(Context ctx, String zone, Calendar date) {
+        if (zone == null || zone.isEmpty()) zone = getJakimZone(ctx);
+        long[] times = getTimesForToday(ctx, date.get(Calendar.DAY_OF_MONTH));
+        if (times == null || times.length < 6) {
+            times = calculateFallback(ctx, date);
+        }
+        if (times == null || times.length < 6) return null;
+        int[] minutes = new int[6];
+        for (int i = 0; i < 6; i++) {
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(times[i]);
+            minutes[i] = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
+        }
+        return new Day(minutes, getHijriDate());
+    }
+
+    static boolean due(Context ctx, String zone) {
+        return day(ctx, zone, Calendar.getInstance()) == null;
+    }
+
+    static boolean refresh(Context ctx, String zone) {
+        sync(ctx, null);
+        return true;
+    }
 
     private PrayerTimes() {
     }
@@ -230,6 +266,16 @@ final class PrayerTimes {
                 .remove("manual_lat")
                 .remove("manual_lon")
                 .apply();
+    }
+
+    public static void setZone(Context context, String zoneCode) {
+        if (zoneCode == null) return;
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit()
+                .putString("manual_prayer_zone", zoneCode)
+                .putString("manual_prayer_zone_name", zoneCode)
+                .apply();
+        sync(context, null);
     }
 
     public static void setPrayerZone(Context context, PrayerZone zone) {

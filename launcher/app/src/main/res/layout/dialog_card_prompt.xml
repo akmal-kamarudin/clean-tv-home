@@ -21,7 +21,12 @@
         android:textColor="#FFFFFFFF"
         android:textSize="22sp"
         android:fontFamily="@font/outfit"
-        android:fontVariationSettings="'wght' 500"
+        android:fontVariationSettings="'wght' 700"
+        android:textStyle="bold"
+        android:shadowColor="#DD000000"
+        android:shadowDx="0"
+        android:shadowDy="2"
+        android:shadowRadius="4"
         android:letterSpacing="-0.01" />
 
     <TextView
@@ -29,20 +34,32 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:textColor="#D9FFFFFF"
-        android:textSize="15sp"
-        android:lineSpacingExtra="3sp"
-        android:fontFamily="@font/outfit" />
+        android:textColor="#FFFFFFFF"
+        android:textSize="15.5sp"
+        android:fontFamily="@font/outfit"
+        android:fontVariationSettings="'wght' 600"
+        android:textStyle="bold"
+        android:shadowColor="#CC000000"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="3"
+        android:lineSpacingExtra="3sp" />
 
     <TextView
         android:id="@+id/names"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:textColor="#D9FFFFFF"
-        android:textSize="15sp"
-        android:lineSpacingExtra="3sp"
-        android:fontFamily="@font/outfit" />
+        android:textColor="#F0FFFFFF"
+        android:textSize="15.5sp"
+        android:fontFamily="@font/outfit"
+        android:fontVariationSettings="'wght' 600"
+        android:textStyle="bold"
+        android:shadowColor="#CC000000"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="3"
+        android:lineSpacingExtra="3sp" />
 
     <TextView
         android:id="@+id/hint"
@@ -50,9 +67,15 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:text="@string/card_prompt_hint"
-        android:textColor="#99FFFFFF"
-        android:textSize="13sp"
-        android:fontFamily="@font/outfit" />
+        android:textColor="#E6FFFFFF"
+        android:textSize="14sp"
+        android:fontFamily="@font/outfit"
+        android:fontVariationSettings="'wght' 600"
+        android:textStyle="bold"
+        android:shadowColor="#AA000000"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="2" />
 
     <TextView
         android:id="@+id/identity"
@@ -60,10 +83,12 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:maxLines="2"
-        android:textColor="#80FFFFFF"
-        android:textSize="12sp"
-        android:letterSpacing="0.03"
-        android:fontFamily="@font/outfit" />
+        android:textColor="#D9FFFFFF"
+        android:textSize="13sp"
+        android:fontFamily="@font/outfit"
+        android:fontVariationSettings="'wght' 550"
+        android:textStyle="bold"
+        android:letterSpacing="0.03" />
 
     <LinearLayout
         android:layout_width="match_parent"

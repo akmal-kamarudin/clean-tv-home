@@ -9,11 +9,11 @@ and come home to just your apps, with a new place to visit behind them every wee
 
 <p align="center">
   <a href="https://github.com/aqmangge/glass-tv-home/raw/main/release/glass-tv-home.apk">
-    <img src="https://img.shields.io/badge/Download_APK_v2.6.0-glass--tv--home.apk_(504_KB)-success?style=for-the-badge&logo=android" alt="Download APK v2.6.0">
+    <img src="https://img.shields.io/badge/Download_APK_v3.0.0-glass--tv--home.apk_(644_KB)-success?style=for-the-badge&logo=android" alt="Download APK v3.0.0">
   </a>
 </p>
 
-> 📦 **Direct APK Download**: Get the latest prebuilt [**`release/glass-tv-home.apk`**](https://github.com/aqmangge/glass-tv-home/raw/main/release/glass-tv-home.apk) (**v2.6.0** • ~504 KB) ready to install on any Android TV or Google TV!
+> 📦 **Direct APK Download**: Get the latest prebuilt [**`release/glass-tv-home.apk`**](https://github.com/aqmangge/glass-tv-home/raw/main/release/glass-tv-home.apk) (**v3.0.0** • ~644 KB) ready to install on any Android TV or Google TV!
 >
 > 🎨 **Interactive Design Presentation Poster**: Open [`docs/poster.html`](docs/poster.html) in any browser for the complete UI/UX specifications, design tokens, and printable poster deck.
 >
@@ -25,11 +25,12 @@ Glass TV debloats any Android TV or Google TV over Wi-Fi, with no root and nothi
 swaps the ad-filled home screen for a light one in frosted glass, with a new set of places behind your apps
 every week.
 
-<p>
-  <img src="docs/screenshots/home-live.png" width="24%" alt="Live Home Screen">
-  <img src="docs/screenshots/weather-live.png" width="24%" alt="Weather & Air Quality Dashboard">
-  <img src="docs/screenshots/screensaver-live.png" width="24%" alt="StandBy Nightstand Screensaver">
-  <img src="docs/screenshots/recent-apps-live.png" width="24%" alt="Recent Apps & RAM Manager">
+<p align="center">
+  <img src="docs/screenshots/home-live.png" width="19%" alt="Live Home Screen">
+  <img src="docs/screenshots/weather-live.png" width="19%" alt="Apple Weather Bento Dashboard">
+  <img src="docs/screenshots/azan-popup-live.png" width="19%" alt="16:9 Azan Floating Settings">
+  <img src="docs/screenshots/screensaver-live.png" width="19%" alt="StandBy Screensaver">
+  <img src="docs/screenshots/wallpaper-dialog-live.png" width="19%" alt="4K Wallpapers & Phone QR Upload">
 </p>
 
 ## What you get
@@ -97,8 +98,8 @@ every week.
 - **Comes back as you left it.** Back from an app, the app you left is still selected; pressing Home on Home
   goes to the first app. When Android has closed Home to free memory, it comes back whole in one frame,
   with no black screen and no half-built dock.
-- **A clock screensaver.** A grey analog dial with a yellow-orange second hand that ticks, the time and
-  date beneath, drifting a little each minute so nothing burns in.
+- **A StandBy clock screensaver.** A sleek, high-contrast OLED digital nightstand clock with 110sp digits,
+  Islamic Hijri calendar, next prayer countdown capsule, and gentle minute-by-minute drift to prevent burn-in.
 - **Rows feather out under the top bar** instead of being cut off when you scroll, and the Wi-Fi / Ethernet
   button can be hidden (`show_network_pill`).
 - **Rotating wallpapers of your own** instead, with `"places": false`: put pictures in a theme's `wallpapers/`
@@ -107,10 +108,10 @@ every week.
 
 | | |
 |---|---|
-| ![Home with Mount Sneffels behind the apps, its name, country and story above the glass dock](docs/screenshots/home.jpg) | ![The app grid scrolled down over the Chauvet cave, rows feathering out under the top bar](docs/screenshots/grid.jpg) |
+| ![Home with Masjid Negeri Shah Alam, Selangor, story caption and glass dock](docs/screenshots/home.jpg) | ![The app grid scrolled down over the wallpaper, rows feathering out under the top bar](docs/screenshots/grid.jpg) |
 | *Home, with this week's place* | *Every app, feathering out under the top bar* |
-| ![The glass Inputs menu with HDMI 1 selected](docs/screenshots/inputs.jpg) | ![The clock screensaver: a grey analog dial, the time and the date](docs/screenshots/clock.jpg) |
-| *Inputs, in glass* | *The clock screensaver* |
+| ![The glass menu and quick controls over Jambatan Angkat Terengganu](docs/screenshots/inputs.jpg) | ![The StandBy clock screensaver with large 110sp digits, Hijri date, and prayer countdown](docs/screenshots/clock.jpg) |
+| *Inputs, in glass* | *The StandBy clock screensaver* |
 
 Still light: on a Xiaomi Mi TV with 1.8 GB of RAM the launcher uses about 80–100 MB and stays there over hours
 of use, one wallpaper is in memory at a time, the week's places take about 2 MB of storage, and nothing runs

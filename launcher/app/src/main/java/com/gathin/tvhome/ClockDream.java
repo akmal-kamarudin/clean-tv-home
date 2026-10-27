@@ -1,41 +1,39 @@
 package com.gathin.tvhome;
 
-import android.graphics.Paint;
-import android.graphics.Rect;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.service.dreams.DreamService;
-import android.text.format.DateFormat;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextClock;
 import android.widget.TextView;
 
-import java.util.Locale;
+import java.util.Calendar;
 import java.util.Random;
 
 /**
- * Screensaver: a grey analog clock (see {@link ClockFace}) with the time and a short date beneath.
- * It sits in the middle of the screen and every minute shifts a few pixels around the centre, so
- * nothing burns in while it still reads as centred. No network, no images: cheap enough for a 1 GB TV.
+ * Screensaver (DreamService): StandBy OLED Nightstand Screensaver with large 110sp digits,
+ * Gregorian date, Islamic Hijri date, next prayer countdown capsule, and subtle
+ * drift to prevent OLED burn-in over long sessions.
  *
- * <p>Everything is sized from the screen's height, in the units the design was drawn in: a screen
- * 380 units tall.
+ * <p>Between 10:00 PM and 6:00 AM, automatically shifts to iPhone StandBy Wind Down
+ * Mode (soft monochrome red on pure black). Dismisses on any remote button press.
  */
 public class ClockDream extends DreamService {
 
     private static final String TAG = "TvHome.ClockDream";
     private static final long MOVE_MS = 60_000L;
-    private static final float SCREEN_UNITS = 380f;
     private static final long DREAM_SLEEP_TIMEOUT_MS = 2L * 60 * 60 * 1000L; // 2 hours
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Random random = new Random();
     private View content;
-    private ClockFace face;
+    private TextView clock;
+    private TextView ampm;
+    private TextView date;
+    private TextView hijri;
+    private TextView prayer;
+    private TextView hint;
     private long dreamStartTime = 0;
 
     private final Runnable tick = new Runnable() {
@@ -51,6 +49,7 @@ public class ClockDream extends DreamService {
                 finish();
                 return;
             }
+            updateNightstand();
             moveClock();
             handler.postDelayed(this, MOVE_MS);
         }
@@ -59,72 +58,39 @@ public class ClockDream extends DreamService {
     @Override
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
-        setInteractive(false);   // any key wakes the TV back to where it was
+        setInteractive(false);   // Any key wakes the TV back to where it was
         setFullscreen(true);
         setScreenBright(false);
-        setContentView(R.layout.dream_clock);
+        setContentView(R.layout.view_nightstand);
 
-        content = findViewById(R.id.dreamContent);
-        face = new ClockFace(this);
-        ((ViewGroup) content).addView(face, 0, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        TextClock date = findViewById(R.id.dreamDate);
-        // The month in short and the year (in capitals, see dream_clock.xml): OCT 21, 2026.
-        String pattern = DateFormat.getBestDateTimePattern(Locale.getDefault(), "MMMdyyyy");
-        date.setFormat12Hour(pattern);
-        date.setFormat24Hour(pattern);
-        View screen = (View) content.getParent();
-        screen.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
-            if (b - t != ob - ot) size(b - t);
-        });
-        // Re-centre once the clock has its size for this screen.
-        content.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
-            if (r - l != or - ol || b - t != ob - ot) placeClock();
-        });
-    }
+        View root = findViewById(R.id.nightstandRoot);
+        if (root != null) {
+            root.setOnClickListener(v -> finish());
+        }
 
-    /** Lays the clock out for a screen {@code height} pixels tall. */
-    private void size(int height) {
-        float u = height / SCREEN_UNITS;
-        face.setRimRadius(83.6f * u);
-        TextView time = findViewById(R.id.dreamTime);
-        TextView amPm = findViewById(R.id.dreamAmPm);
-        TextView date = findViewById(R.id.dreamDate);
-        time.setTextSize(TypedValue.COMPLEX_UNIT_PX, 44f * u);
-        amPm.setTextSize(TypedValue.COMPLEX_UNIT_PX, 14f * u);
-        date.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f);
+        content = findViewById(R.id.nightstandContent);
+        clock = findViewById(R.id.nightstandClock);
+        ampm = findViewById(R.id.nightstandAmPm);
+        date = findViewById(R.id.nightstandDate);
+        hijri = findViewById(R.id.nightstandHijri);
+        prayer = findViewById(R.id.nightstandPrayer);
+        hint = findViewById(R.id.nightstandHint);
 
-        // The tops of the digits sit 34 units under the rim, below the room the dial keeps for its shadow.
-        LinearLayout.LayoutParams row = (LinearLayout.LayoutParams) findViewById(R.id.dreamTimeRow).getLayoutParams();
-        row.topMargin = Math.round(34f * u - face.shadowRoom() - capInset(time, "0"));
-        // AM/PM's capitals start where the digits do.
-        LinearLayout.LayoutParams ampm = (LinearLayout.LayoutParams) amPm.getLayoutParams();
-        ampm.leftMargin = Math.round(5f * u);
-        amPm.setTranslationY(capInset(time, "0") - capInset(amPm, "PM"));
-        // The date's capitals start 16.5 units under the digits' baseline.
-        LinearLayout.LayoutParams dateRow = (LinearLayout.LayoutParams) date.getLayoutParams();
-        dateRow.topMargin = Math.round(16.5f * u - time.getPaint().getFontMetrics().descent - capInset(date, "O"));
-        content.requestLayout();
-    }
-
-    /** How far below the top of {@code view} the tops of {@code letters} are drawn. */
-    static float capInset(TextView view, String letters) {
-        Paint paint = view.getPaint();
-        Rect bounds = new Rect();
-        paint.getTextBounds(letters, 0, letters.length(), bounds);
-        return bounds.top - paint.getFontMetrics().ascent;
+        updateNightstand();
     }
 
     @Override
     public void onDreamingStarted() {
         super.onDreamingStarted();
         dreamStartTime = android.os.SystemClock.elapsedRealtime();
-        content.setAlpha(0f);
-        content.post(() -> {
-            placeClock();
-            content.animate().alpha(1f).setDuration(1200).start();
-        });
-        face.start();
+        if (content != null) {
+            content.setAlpha(0f);
+            content.post(() -> {
+                updateNightstand();
+                placeClock();
+                content.animate().alpha(1f).setDuration(1000).start();
+            });
+        }
         handler.postDelayed(tick, MOVE_MS);
     }
 
@@ -132,7 +98,6 @@ public class ClockDream extends DreamService {
     public void onDreamingStopped() {
         dreamStartTime = 0;
         handler.removeCallbacks(tick);
-        face.stop();
         super.onDreamingStopped();
     }
 
@@ -143,21 +108,73 @@ public class ClockDream extends DreamService {
         super.onDetachedFromWindow();
     }
 
+    private void updateNightstand() {
+        if (content == null) return;
+
+        if (hijri != null) {
+            hijri.setText("🌙 " + PrayerTimes.getHijriDate());
+        }
+
+        if (prayer != null) {
+            prayer.setText("🕌 " + PrayerTimes.getNextPrayerSummary(this));
+        }
+
+        float density = getResources().getDisplayMetrics().density;
+
+        // StandBy Wind Down Mode: 10:00 PM (22:00) to 6:00 AM (06:00) -> Red Monochrome
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        boolean isNightMode = (hour >= 22 || hour < 6);
+
+        if (isNightMode) {
+            int red = 0xFFFF453A;
+            if (clock != null) clock.setTextColor(red);
+            if (ampm != null) ampm.setTextColor(0xCCFF453A);
+            if (date != null) date.setTextColor(0xE6FF453A);
+            if (hijri != null) hijri.setTextColor(0xE6FF453A);
+            if (prayer != null) {
+                prayer.setTextColor(red);
+                GradientDrawable redPill = new GradientDrawable();
+                redPill.setShape(GradientDrawable.RECTANGLE);
+                redPill.setColor(0x26FF453A);
+                redPill.setStroke((int) (1 * density), 0x59FF453A);
+                redPill.setCornerRadius(21 * density);
+                prayer.setBackground(redPill);
+            }
+            if (hint != null) hint.setTextColor(0x55FF453A);
+        } else {
+            if (clock != null) clock.setTextColor(0xFFFFFFFF);
+            if (ampm != null) ampm.setTextColor(0xB3FFFFFF);
+            if (date != null) date.setTextColor(0xE6FFFFFF);
+            if (hijri != null) hijri.setTextColor(0xD9E6E0D2);
+            if (prayer != null) {
+                prayer.setTextColor(0xFFFFFFFF);
+                prayer.setBackgroundResource(R.drawable.pill_bg);
+            }
+            if (hint != null) hint.setTextColor(0x4DFFFFFF);
+        }
+    }
+
     private void moveClock() {
-        content.animate().alpha(0f).setDuration(900).withEndAction(() -> {
+        if (content == null) return;
+        content.animate().alpha(0f).setDuration(600).withEndAction(() -> {
             placeClock();
-            content.animate().alpha(1f).setDuration(1200).start();
+            content.animate().alpha(1f).setDuration(800).start();
         }).start();
     }
 
-    /** The middle of the screen, nudged up to 1.5 % either way. */
+    /** Subtle drift to prevent OLED burn-in: nudged up to 1.5% around the center. */
     private void placeClock() {
+        if (content == null) return;
         View parent = (View) content.getParent();
-        float nudgeX = parent.getWidth() * 0.015f * (2f * random.nextFloat() - 1f);
-        float nudgeY = parent.getHeight() * 0.015f * (2f * random.nextFloat() - 1f);
-        float x = (parent.getWidth() - content.getWidth()) / 2f + nudgeX;
-        float y = (parent.getHeight() - content.getHeight()) / 2f + nudgeY;
-        content.setX(x);
-        content.setY(y);
+        if (parent == null) return;
+        int pw = parent.getWidth();
+        int ph = parent.getHeight();
+        if (pw <= 0 || ph <= 0) return;
+
+        float nudgeX = pw * 0.015f * (2f * random.nextFloat() - 1f);
+        float nudgeY = ph * 0.015f * (2f * random.nextFloat() - 1f);
+        content.setTranslationX(nudgeX);
+        content.setTranslationY(nudgeY);
     }
 }

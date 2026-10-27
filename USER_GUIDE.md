@@ -19,9 +19,9 @@ Glass TV Home is a modern, lightweight home launcher replacement for Android TV 
 ## 📦 Direct APK Download
 
 For users who want to download and install the pre-compiled APK directly:
-* 📥 **Official Release APK**: [**glass-tv-home.apk** (504 KB)](https://github.com/aqmangge/glass-tv-home/raw/main/release/glass-tv-home.apk)
+* 📥 **Official Release APK**: [**glass-tv-home.apk** (644 KB)](https://github.com/aqmangge/glass-tv-home/raw/main/release/glass-tv-home.apk)
 * 📁 **Repository Location**: [`release/glass-tv-home.apk`](release/glass-tv-home.apk)
-* ⚡ **Version**: **v2.6.0** (Latest with 🎮 Console Sound Profiles: PS5, Nintendo Switch, Xbox & Mute Mode, 🔄 OTA In-App Auto Updates & 1-Line AI Patching, 🇲🇾 14 Malaysian States Wallpapers, Phone QR Upload & Unifi Box Verified).
+* ⚡ **Version**: **v3.0.0** (Major Release: 🍏 macOS Apple Weather Bento Grid Dashboard, 🌧️ Hardware-Accelerated Atmospheric Canvas with Sunny/Rain/Thunder/Cloud/Night modes, 📡 Doppler Precipitation Radar Map, 🧭 Wind Compass Dial, 🌙 3D Moon Phase, 🕌 16:9 Floating Glass Azan Notification & Audio Settings, 🎮 Console Sound Profiles: PS5, Nintendo Switch, Xbox & Mute Mode, 🔄 OTA In-App Auto Updates).
 
 > [!NOTE]
 > ### 🇲🇾 Unifi TV Box (TM Unifi Plus Box) Users: Compatibility & Warranty Safety
@@ -138,13 +138,13 @@ Glass TV Home is designed around standard TV remotes:
 
 | Remote Button | Action / Function |
 | :--- | :--- |
-| **DOUBLE-PRESS HOME** | • **Outside**: Opens Recent Apps & RAM Manager.<br>• **Inside Recent Apps**: Triggers **Close All** immediately to terminate all background apps & clear RAM! |
 | **HOME Button (Single Press)** | Return to home dock from any third-party app. If on home, engages ambient screensaver. |
+| **HOLD HOME (Long-Press)** | Globally opens the floating Quick Settings popup from inside any application (Netflix, YouTube, etc.). |
 | **UP Button (▲)** | Navigates to the top shelf to highlight the **Weather & AQI Pill**, Inputs, Wi-Fi, or **Settings Button (⚙️)**. |
 | **OK / Center Button** | • Press on an app to launch it.<br>• Press on the weather pill to open the **Full-Screen Weather & Air Quality Dashboard**.<br>• Press on **Settings (⚙️)** to open the **Frosted Glass Dropdown Menu** (Wallpaper, Haze Location, Prayer Zone, Android Settings).<br>• **Long-Press** on an app to pick it up and rearrange/pin it to the dock. |
 | **DOWN Button (▼)** | Returns focus down to the main application dock. |
 | **LEFT / RIGHT (◀ / ▶)** | Move smoothly between dock apps or top pills with fluid glass glow transitions. |
-| **BACK Button (↩)** | Closes the Weather Dashboard, Recent Apps, Dialogs, or screensaver and returns to the home dock. |
+| **BACK Button (↩)** | Closes the Weather Dashboard, Settings Dialogs, or screensaver and returns to the home dock. |
 
 ---
 
@@ -215,14 +215,14 @@ Users who install the APK manually or relocate **DO NOT NEED A COMPUTER OR AI** 
 * **2 Hours Later**: If left untouched, the TV display enters sleep standby (`GLOBAL_ACTION_LOCK_SCREEN`) to save power.
 * **Wake Up**: Press any button on the TV remote to wake the TV immediately.
 
-### E. Recent Apps & RAM Cleaner (Double-Press Home) ⚡
-A native tvOS-style app switcher and memory flusher:
-* **How to Open**: Press the remote **HOME button twice rapidly** from any app or home screen (or press the App Switch button on supported remotes).
-* **Double-Press Home to Close All**: While viewing the Recent Apps screen, press the **HOME button twice rapidly** again to immediately execute **Close All** and clean RAM without touching any other key!
-* **Genuine Force-Stop Automation**: Integrates background accessibility automation to cleanly terminate stubborn media players, video streams, and background tasks (such as Nuvio, YouTube, Stremio) from system memory, rather than merely dismissing their card visually.
-* **Live RAM Gauge Pill**: In the top right corner, view real-time memory stats (e.g., `RAM 1.8 GB used of 2.3 GB`) with a responsive recessed progress bar.
-* **Dismiss Individual Apps**: On any focused app card, press **UP (▲)** on your remote to terminate its process, animate the card away, and instantly free up RAM.
-* **'Close All' Button (Trash Icon 🗑️)**: Navigate to the far right of the carousel and click the circular **Close All** button to terminate all running background apps and flush RAM in 1 tap!
+### E. 16:9 Floating Azan Notification & Audio Settings 🕌
+A respectful spiritual living room feature synchronized live with official JAKIM Malaysia E-Solat schedules:
+* **Floating System Overlay**: At the precise time of prayer, an elegant 16:9 frosted glass notification card automatically appears on screen over running apps (Netflix, YouTube, media players) without crashing or interrupting playback.
+* **All-In-One Control Center**: Open via the **Candy Box (㗊)** icon on the top bar or by **Holding the HOME button**:
+  1. **A. Master Popup Switch**: Toggle Azan notification overlays globally *ON* or *OFF*.
+  2. **B. Individual Prayer Toggles**: Set alerts separately for each of the 6 prayer periods: *Subuh, Syuruk, Zohor, Asar, Maghrib, Isyak*.
+  3. **C. Azan Audio Presets**: Choose your preferred Azan audio: *Masjid As-Syakirin KLCC, Makkah Mukarramah, or Madinah Munawwarah*.
+  4. **D. Live Test Mode**: Click **▶️ Test Azan Popup Now** to trigger an instant test overlay and verify sound volume.
 
 ### F. Frosted Glass Settings Dropdown Menu ⚙️
 Clicking the **Settings (gear icon ⚙️)** on the top bar reveals an Apple tvOS-style floating glass menu:

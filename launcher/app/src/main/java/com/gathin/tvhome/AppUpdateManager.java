@@ -36,14 +36,51 @@ import java.util.concurrent.Executors;
  */
 public final class AppUpdateManager {
     private static final String TAG = "AppUpdateManager";
-    private static final String VERSION_URL = "https://raw.githubusercontent.com/aqmangge/glass-tv-home/main/release/version.json";
+    private static final String VERSION_URL = "https://raw.githubusercontent.com/akmal-kamarudin/clean-tv-home/main/release/version.json";
     private static final String PREFS_NAME = "update_prefs";
     private static final String KEY_LAST_CHECK = "last_check_timestamp";
+    public static final String KEY_AUTO_UPDATE = "pref_auto_update";
+    public static final String KEY_AUTO_UPDATE_TIME = "pref_auto_update_time";
+    public static final String DEFAULT_AUTO_UPDATE_TIME = "03:30 AM";
 
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private AppUpdateManager() {
+    }
+
+    public static boolean isAutoUpdateEnabled(Context context) {
+        if (context == null) return true;
+        SharedPreferences sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return sp.getBoolean(KEY_AUTO_UPDATE, true); // default ON
+    }
+
+    public static void setAutoUpdateEnabled(Context context, boolean enabled) {
+        if (context == null) return;
+        SharedPreferences sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        sp.edit().putBoolean(KEY_AUTO_UPDATE, enabled).apply();
+    }
+
+    public static String getAutoUpdateTime(Context context) {
+        if (context == null) return DEFAULT_AUTO_UPDATE_TIME;
+        SharedPreferences sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return sp.getString(KEY_AUTO_UPDATE_TIME, DEFAULT_AUTO_UPDATE_TIME);
+    }
+
+    public static void setAutoUpdateTime(Context context, String time) {
+        if (context == null) return;
+        SharedPreferences sp = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        sp.edit().putString(KEY_AUTO_UPDATE_TIME, time != null ? time : DEFAULT_AUTO_UPDATE_TIME).apply();
+    }
+
+    public static void checkAutoUpdateIfDue(Activity activity) {
+        if (activity == null || !isAutoUpdateEnabled(activity)) return;
+        SharedPreferences sp = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        long lastCheck = sp.getLong(KEY_LAST_CHECK, 0);
+        // Check once every 12 hours at least
+        if (System.currentTimeMillis() - lastCheck >= 12 * 3600 * 1000L) {
+            checkForUpdates(activity, false);
+        }
     }
 
     public interface CheckCallback {
@@ -123,7 +160,7 @@ public final class AppUpdateManager {
     }
 
     private static void showUpdateDialog(Activity activity, String newVersionName, String currentVersionName, String changelog, String apkUrl) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity, android.R.style.Theme_DeviceDefault_Dialog_Alert);
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.Theme_TvHome_GlassDialog);
         builder.setTitle("🚀 New update available (v" + newVersionName + ")");
         
         String message = "Current version: v" + currentVersionName + "\n"
@@ -147,7 +184,7 @@ public final class AppUpdateManager {
         // Check install permission on Android 8.0+ (Oreo, API 26+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!activity.getPackageManager().canRequestPackageInstalls()) {
-                AlertDialog.Builder permDialog = new AlertDialog.Builder(activity, android.R.style.Theme_DeviceDefault_Dialog_Alert);
+                AlertDialog.Builder permDialog = new AlertDialog.Builder(activity, R.style.Theme_TvHome_GlassDialog);
                 permDialog.setTitle("⚠️ Kebenaran Pemasangan Diperlukan");
                 permDialog.setMessage("Turn on 'Allow from this source' so Glass TV Home can install updates.");
                 permDialog.setPositiveButton("Open Settings", (d, w) -> {
@@ -165,7 +202,7 @@ public final class AppUpdateManager {
             }
         }
 
-        ProgressDialog progressDialog = new ProgressDialog(activity, android.R.style.Theme_DeviceDefault_Dialog_Alert);
+        ProgressDialog progressDialog = new ProgressDialog(activity, R.style.Theme_TvHome_GlassDialog);
         progressDialog.setTitle("📥 Downloading update (v" + versionName + ")");
         progressDialog.setMessage("Downloading the installer...");
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);

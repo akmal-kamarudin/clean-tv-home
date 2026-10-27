@@ -19,8 +19,10 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Dynamic 4K dark desktop wallpaper manager.
@@ -34,7 +36,7 @@ final class OnlineWallpapers {
     private static final String PREFS_NAME = "online_wallpapers";
     private static final String PREF_LAST_SYNC = "last_sync_time";
     private static final long REFRESH_INTERVAL_MS = 6L * 60 * 60 * 1000; // 6 hours
-    private static final int MAX_CACHE_FILES = 50;
+    private static final int MAX_CACHE_FILES = 150;
     private static final int MAX_IMAGE_BYTES = 25 * 1024 * 1024; // 25 MB limit per 4K/8K image
 
     static class WallpaperItem {
@@ -53,175 +55,143 @@ final class OnlineWallpapers {
 
     // Built-in curated catalog of dark, moody, atmospheric 4K desktop wallpapers (Unsplash)
     private static final WallpaperItem[] CURATED_CATALOG = new WallpaperItem[]{
-            new WallpaperItem("https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Night Earth Orbit", "Planet Earth illuminated at night from outer space", "Space"),
-            new WallpaperItem("https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Milky Way Galaxy", "Deep night sky filled with stellar constellations", "Astronomy"),
+            // Malaysia: Tempat Menarik di Malaysia (16 Koleksi Pexels 4K Ultra HD)
+            new WallpaperItem("https://images.pexels.com/photos/40168956/pexels-photo-40168956.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Orangutan Rimba Borneo", "Spesies ikonik hidupan liar di kanopi hutan hujan tropika Borneo, khazanah alam semula jadi", "Malaysia_Sabah"),
+            new WallpaperItem("https://images.pexels.com/photos/36767161/pexels-photo-36767161.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Siluet Senja Kuala Lumpur", "Garis langit metropolis ibu negara berlatarkan kilauan warna merah saga dan jingga waktu senja", "Malaysia_WP"),
+            new WallpaperItem("https://images.pexels.com/photos/338416/pexels-photo-338416.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Masjid Putra & Tasik Putrajaya", "Keindahan seni bina kubah merah jambu Masjid Putra membiaskan pantulan anggun di permukaan tasik tenang", "Malaysia_Putrajaya"),
+            new WallpaperItem("https://images.pexels.com/photos/33676568/pexels-photo-33676568.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Puncak Menara Berkembar KLCC", "Menara Berkembar Petronas tersergam megah meredah lautan awan keemasan di ufuk Kuala Lumpur", "Malaysia_WP"),
+            new WallpaperItem("https://images.pexels.com/photos/39690291/pexels-photo-39690291.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Masjid Selat Melaka", "Masjid terapung tersohor di pesisir Selat Melaka disinari gemerlap lampu malam dan langit tembaga", "Malaysia_Melaka"),
+            new WallpaperItem("https://images.pexels.com/photos/33708542/pexels-photo-33708542.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Calet Pergunungan Kundasang", "Kediaman unik di lereng bukit menghijau berlatarbelakangkan udara nyaman banjaran tanah tinggi Sabah", "Malaysia_Sabah"),
+            new WallpaperItem("https://images.pexels.com/photos/14776919/pexels-photo-14776919.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Jalan Berliku Banjaran Titiwangsa", "Laluan berliku meredah rabung pergunungan hijau yang diselimuti kabut tebal waktu fajar", "Malaysia_Pahang"),
+            new WallpaperItem("https://images.pexels.com/photos/5224545/pexels-photo-5224545.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Fajar Lembah Sungai Pahang", "Limpahan cahaya emas mentari pagi menyinari aliran sungai permai dan perkampungan pesisir bukit", "Malaysia_Pahang"),
+            new WallpaperItem("https://images.pexels.com/photos/11643318/pexels-photo-11643318.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Senja Merah Lembah Sungai", "Panorama matahari terbenam membiaskan rona jingga tembaga di sepanjang liku sungai dan bukit bukau", "Malaysia_Pahang"),
+            new WallpaperItem("https://images.pexels.com/photos/28727775/pexels-photo-28727775.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Pesisiran Pantai Tanjung Balau", "Kejernihan air laut membiru dan keunikan tanjung berbatu di Desaru menghadap Laut China Selatan", "Malaysia_Johor"),
+            new WallpaperItem("https://images.pexels.com/photos/38188372/pexels-photo-38188372.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Jambatan Angkat Terengganu", "Seni bina jambatan angkat ikonik Kuala Terengganu bermandikan biasan sinaran matahari terbenam", "Malaysia_Terengganu"),
+            new WallpaperItem("https://images.pexels.com/photos/13890758/pexels-photo-13890758.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Pekan Diraja Kuala Kangsar", "Pemandangan udara bandar warisan permai di tebingan Sungai Perak diapit kehijauan alam tropika", "Malaysia_Perak"),
+            new WallpaperItem("https://images.pexels.com/photos/139974/pexels-photo-139974.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Perahu Nelayan Jalur Gemilang", "Bot nelayan tradisional berlabuh tenang di muara sungai ketika langit senja berona merah jambu", "Malaysia_Terengganu"),
+            new WallpaperItem("https://images.pexels.com/photos/5649468/pexels-photo-5649468.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Masjid Negeri Shah Alam", "Kubah biru tersergam indah dan empat menara bercahaya Masjid Sultan Salahuddin Abdul Aziz Shah pada waktu malam", "Malaysia_Selangor"),
+            new WallpaperItem("https://images.pexels.com/photos/130576/pexels-photo-130576.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Ladang Teh Cameron Highlands", "Hamparan bukit teh hijau beralun segar di bawah langit biru cerah tanah tinggi banjaran Pahang", "Malaysia_Pahang"),
+            new WallpaperItem("https://images.pexels.com/photos/35905094/pexels-photo-35905094.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Beca Berhias Warisan Melaka", "Keunikan beca pelancongan berhias bunga dan lagu ceria menelusuri lorong warisan bersejarah bandar raya Melaka", "Malaysia_Melaka"),
+
+            // Nature & Landscapes (Alam Semula Jadi - Pexels & Unsplash 4K)
             new WallpaperItem("https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=3840&h=2160&q=80",
                     "Moody Alpine Mountains", "Silhouetted mountain peaks under starry skies", "Landscape"),
-            new WallpaperItem("https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Tokyo Cyberpunk Alley", "Moody neon reflections in a narrow Tokyo alleyway", "Cityscape"),
-            new WallpaperItem("https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Deep Underwater Abyss", "Sunlight penetrating into the dark deep ocean", "Underwater"),
+            new WallpaperItem("https://images.pexels.com/photos/1366919/pexels-photo-1366919.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Moody Mountain Fog", "Mist rolling through dense mountain evergreen pine forest", "Landscape"),
             new WallpaperItem("https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=3840&h=2160&q=80",
                     "Dark Aurora Borealis", "Green atmospheric aurora dancing across arctic skies", "Nature"),
-            new WallpaperItem("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Midnight Ocean Waves", "Deep blue waves crashing on a tranquil dark shore", "Oceans"),
+            new WallpaperItem("https://images.pexels.com/photos/1624496/pexels-photo-1624496.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Starry Night Over Pines", "Bright starry cosmos illuminating tall silhouette pine forest", "Nature"),
             new WallpaperItem("https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=3840&h=2160&q=80",
                     "Dark Misty Pine Forest", "Dense evergreen canopy cloaked in rolling fog", "Forest"),
-            new WallpaperItem("https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Deep Space Nebula", "Cosmic interstellar gas clouds and distant stars", "Cosmos"),
+            new WallpaperItem("https://images.pexels.com/photos/1287145/pexels-photo-1287145.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Serene Alpine Twilight", "Calm dusk sky casting reflections across quiet mountain lake", "Nature"),
             new WallpaperItem("https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=3840&h=2160&q=80",
                     "Moody Lake Twilight", "Still dark waters reflecting misty mountain ridges", "Landscape"),
             new WallpaperItem("https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=3840&h=2160&q=80",
                     "Dark Desert Dunes", "Shadows sweeping over desert dunes under the night sky", "Desert"),
-            new WallpaperItem("https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Cosmic Dark Starfield", "Deep black void speckled with distant galaxies", "Space"),
-            new WallpaperItem("https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Dark Neon Rain Street", "Vibrant reflections shimmering on wet asphalt", "Cityscape"),
-            new WallpaperItem("https://images.unsplash.com/photo-1491557345352-5929e343eb89?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Moody Black Mountains", "Dramatic jagged peaks cutting through dark storm clouds", "Mountains"),
-            new WallpaperItem("https://images.unsplash.com/photo-1494548162494-384bba4ab999?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Dark Foggy Suspension Bridge", "Golden Gate towers emerging through evening fog", "Architecture"),
+            new WallpaperItem("https://images.pexels.com/photos/3408744/pexels-photo-3408744.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Majestic Snow Mountain Peak", "Crisp dramatic snow ridges against deep blue atmosphere", "Mountains"),
             new WallpaperItem("https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=3840&h=2160&q=80",
                     "Dark Volcanic Landscape", "Black volcanic terrain and quiet minimalist horizon", "Nature"),
-            new WallpaperItem("https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Rainy Window Twilight", "Water droplets cascading down glass against city dusk", "Atmospheric"),
+
+            // Cityscape & Architecture (Pencakar Langit & Bandar - Pexels & Unsplash 4K)
+            new WallpaperItem("https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Tokyo Cyberpunk Alley", "Moody neon reflections in a narrow Tokyo alleyway", "Cityscape"),
+            new WallpaperItem("https://images.pexels.com/photos/374870/pexels-photo-374870.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Metropolis Skyline Twilight", "Glowing skyscrapers towering over serene bay water", "Cityscape"),
+            new WallpaperItem("https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Dark Neon Rain Street", "Vibrant reflections shimmering on wet asphalt", "Cityscape"),
+            new WallpaperItem("https://images.pexels.com/photos/3052361/pexels-photo-3052361.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Modern Glass Skyscraper", "Geometric glass architectural patterns rising into sky", "Architecture"),
+            new WallpaperItem("https://images.pexels.com/photos/169647/pexels-photo-169647.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Cyberpunk Neon Night", "Futuristic high-density city streets glowing in vibrant magenta", "Cityscape"),
+            new WallpaperItem("https://images.unsplash.com/photo-1494548162494-384bba4ab999?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Dark Foggy Suspension Bridge", "Golden Gate towers emerging through evening fog", "Architecture"),
+
+            // Space & Astronomy (Angkasa & Kosmos - Unsplash 4K)
+            new WallpaperItem("https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Night Earth Orbit", "Planet Earth illuminated at night from outer space", "Space"),
+            new WallpaperItem("https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Milky Way Galaxy", "Deep night sky filled with stellar constellations", "Astronomy"),
+            new WallpaperItem("https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Deep Space Nebula", "Cosmic interstellar gas clouds and distant stars", "Cosmos"),
+            new WallpaperItem("https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Cosmic Dark Starfield", "Deep black void speckled with distant galaxies", "Space"),
+
+            // Ocean & Water (Lautan & Pantai - Pexels & Unsplash 4K)
+            new WallpaperItem("https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Deep Underwater Abyss", "Sunlight penetrating into the dark deep ocean", "Underwater"),
+            new WallpaperItem("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Midnight Ocean Waves", "Deep blue waves crashing on a tranquil dark shore", "Oceans"),
+            new WallpaperItem("https://images.pexels.com/photos/1001682/pexels-photo-1001682.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Deep Ocean Wave Crest", "Powerful sea water curling in turquoise deep shades", "Oceans"),
+            new WallpaperItem("https://images.pexels.com/photos/1032650/pexels-photo-1032650.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Tropical Turquoise Deep Water", "Aerial view of calm ocean reef gradient", "Oceans"),
             new WallpaperItem("https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=3840&h=2160&q=80",
                     "Dark Ocean Trench", "Bioluminescent glow illuminating the deep ocean", "Underwater"),
-            new WallpaperItem("https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Starry Desert Camp", "Distant campfire underneath an endless starlit dome", "Nature"),
+            new WallpaperItem("https://images.pexels.com/photos/1295138/pexels-photo-1295138.jpeg?auto=compress&cs=tinysrgb&w=3840&h=2160",
+                    "Dramatic Sea Cliffs", "Dark oceanic cliffs meeting moody breaking waves", "Coast"),
+
+            // Minimalist & Atmospheric (Minimalis Gelap OLED - Unsplash 4K Curated from https://unsplash.com/s/photos/dark-wallpaper)
+            new WallpaperItem("https://images.unsplash.com/photo-1484950763426-56b5bf172dbb?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Siluet Kenderaan 4x4", "Siluet kenderaan pacuan 4 roda di bawah hamparan bintang malam sepi", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1533134486753-c833f0ed4866?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Gelombang Pasir Kelabu", "Lengkung pasir kelabu berkabus di pesisiran pantai Karekare New Zealand", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1762417108293-91614140073a?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Tekstur Silinder Hitam OLED", "Seni bina permukaan silinder hitam 3D bertekstur gelap minimalis", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1507752533523-5186b0bc4c43?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Pencakar Langit Senja Emas", "Panorama bandar raya metropolitan Montreal disinari biasan cahaya senja keemasan", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1470813740244-df37b8c1edcb?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Malam Bintang Membiru", "Keindahan galaksi dan gugusan bintang malam membiru di balik jurang batu", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1509023464722-18d996393ca8?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Gunung Fuji & Tasik Senyap", "Siluet Gunung Fuji di keheningan malam tasik Jepun berlatarkan langit gelap pekat", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1491466424936-e304919aada7?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Gelombang Pasir Hitam OLED", "Lengkungan bukit pasir hitam minimalis dengan kontras bayang sempurna", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1622737133809-d95047b9e673?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Geometri Poligon Gelap", "Seni bina geometri 3D monokrom berdimensi tinggi untuk skrin OLED", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Aliran Cecair Hitam Sutera", "Gelombang cecair hitam berkilat mengalir anggun dalam kegelapan mutlak", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Grid Gelap Minimalis", "Struktur garisan perspektif moden berlatarbelakangkan hitam pekat", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1507499739999-097706ad8914?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Gerbang Monolit Malam", "Seni bina konkrit minimalis tersergam di bawah kepekatan malam sepi", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Kabut Pergunungan Monokrom", "Banjaran gunung berkabus tebal dalam rona hitam putih dramatik", "Minimalist_OLED"),
             new WallpaperItem("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Dark Moody Castle Mist", "Ancient stone fortress shrouded in mountain mist", "History"),
-            new WallpaperItem("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Minimal Dark Architecture", "Monolithic skyscraper geometry in evening shadows", "Architecture"),
-            new WallpaperItem("https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Midnight Mountain Mirror", "Pristine alpine lake mirroring snowy peaks at night", "Mountains"),
-            new WallpaperItem("https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Dark Forest Canopy", "Looking up through towering pines at twilight sky", "Forest"),
-            new WallpaperItem("https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Minimalist Sand Ridges", "Sculpted dark desert dunes in low evening light", "Minimal"),
-            new WallpaperItem("https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Mountain Silhouette Dusk", "Gradated sunset sky silhouetting layered ridges", "Sunset"),
-            new WallpaperItem("https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Dark Minimalist Forest", "Subtle woodland trees standing in twilight mist", "Nature"),
-            new WallpaperItem("https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Moody Black Sand Beach", "Dark volcanic coast meeting foaming sea waves", "Coastal"),
-            new WallpaperItem("https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Dark Neon Reflections", "Cyberpunk metropolis mirrored in rainy streets", "Cityscape"),
-            new WallpaperItem("https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Deep Moody Lake", "Calm alpine water framed by dark pine shadows", "Landscape"),
-            new WallpaperItem("https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Dark Misty Mountain Ridge", "Rolling mist veiling dramatic jagged cliff faces", "Mountains"),
-            new WallpaperItem("https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Dark Forest Road", "Winding roadway disappearing into moody woodland fog", "Forest"),
-            new WallpaperItem("https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Moody Thunderstorm Clouds", "Massive dark cumulonimbus clouds gathering at dusk", "Weather"),
-            new WallpaperItem("https://images.unsplash.com/photo-1532693322450-2cb5c511067d?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Minimalist Moon Phase", "Crescent moon glowing against a deep pitch-black sky", "Astronomy"),
-            new WallpaperItem("https://images.unsplash.com/photo-1498084393753-b411b2d26b34?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Dark Rainy Asphalt", "Glittering light streaks bouncing off wet night streets", "Urban"),
-            new WallpaperItem("https://images.unsplash.com/photo-1516214104703-d870798883c5?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Dark Foggy Pines", "Serene evergreen trees veiled in thick atmospheric fog", "Forest"),
-            new WallpaperItem("https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Petronas Twin Towers Night", "Illuminated skyscraper spires soaring into the Kuala Lumpur night sky", "Skyscraper"),
-            new WallpaperItem("https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Manhattan Skyline Twilight", "New York City highrise towers lit against the deep evening dusk", "Skyscraper"),
-            new WallpaperItem("https://images.unsplash.com/photo-1477959858617-67f30bc75b82?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Chicago River Skyscrapers", "Glass canyon of modern corporate architecture and night bridges", "Skyscraper"),
-            new WallpaperItem("https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Dubai Marina Highrises", "Futuristic illuminated towers mirrored in the marina waters", "Skyscraper"),
-            new WallpaperItem("https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Hong Kong Cityscape Night", "Dazzling neon metropolis framed by Victoria Harbour", "Skyscraper"),
-
-            // 🇲🇾 A collection for every state in Malaysia
-            // Johor
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/2/2f/Pulau_Rawa_2014.jpg",
-                    "Pulau Rawa, Mersing", "Stunning white sand beaches and clear blue water in the Mersing islands, Johor", "Malaysia_Johor"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/e/e8/Rawa_Island%2C_Johor%2C_Malaysia.jpg",
-                    "Pulau Rawa Coastline", "A calm tropical island shore with natural coral rocks in Johor's waters", "Malaysia_Johor"),
-
-            // Kedah
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/b/b6/Langkawi_Sky_Bridge_%28November_2016%29.jpg",
-                    "Langkawi Sky Bridge", "The iconic curved suspension bridge atop Gunung Mat Cincang, over Langkawi's ancient rainforest", "Malaysia_Kedah"),
-            new WallpaperItem("https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Langkawi, Jewel of Kedah", "Kedah's tropical island jewel, with beautiful beaches and an emerald sea", "Malaysia_Kedah"),
-
-            // Kelantan
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/9/94/Pantai_di_Kota_Bharu%2C_Kelantan.2.jpg",
-                    "Pantai Cahaya Bulan & Senok", "A South China Sea shoreline lined with casuarina trees in Kota Bharu", "Malaysia_Kelantan"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/4/49/Pantai_di_Kota_Bharu%2C_Kelantan.3.jpg",
-                    "Kelantan Fishing Coast", "A peaceful fishing village and east-coast sea breeze on the Kelantan shore", "Malaysia_Kelantan"),
-
-            // Melaka
-            new WallpaperItem("https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Historic Melaka City", "The heritage of the Malay Sultanate and colonial-era landmarks along the Melaka River", "Malaysia_Melaka"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/7/74/Malacca_by_Night_-_panoramio_%281%29.jpg",
-                    "Melaka River & Heritage Bridge", "Enchanting night lights along the historic Melaka River promenade", "Malaysia_Melaka"),
-
-            // Negeri Sembilan
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/b/bc/Port-dickson-beach-1.jpg",
-                    "Pantai Cahaya Negeri, Port Dickson", "Gentle sandy beaches and coconut palms against the Strait of Malacca in Port Dickson", "Malaysia_NegeriSembilan"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/5/59/Port_Dickson_Beach_next_to_the_Bayu_Beach_Hotel.jpg",
-                    "Teluk Kemang Port Dickson", "The calm of Negeri Sembilan's best-known beach resort at dusk", "Malaysia_NegeriSembilan"),
-
-            // Pahang
-            new WallpaperItem("https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Cameron Highlands Tea Plantation", "Lush green tea fields and cool views in the Pahang highlands", "Malaysia_Pahang"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/d/d6/Cameron_Bharat_Tea_Plantation%2C_Cameron_Highlands%2C_Malaysia%2C_20250829_1432_4034.jpg",
-                    "Bharat Valley, Cameron Highlands", "Cool morning mist over lush green tea hills in Cameron Highlands", "Malaysia_Pahang"),
-
-            // Perak
-            new WallpaperItem("https://images.unsplash.com/photo-1532442782935-dc7ee648a2a5?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Ipoh Heritage Town", "Classic tin-mining-era architecture and limestone hills in Ipoh", "Malaysia_Perak"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/6/68/Kellie%27s_Castle.jpg",
-                    "Kellie's Castle, Batu Gajah", "A mysterious colonial-era mansion with Moorish architecture in Batu Gajah", "Malaysia_Perak"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/2/23/Ipoh_Kek_Lok_Dong_%288366358711%29.jpg",
-                    "Kek Lok Tong Cave Garden", "A grand limestone cave with a calm lake garden among Ipoh's karst hills", "Malaysia_Perak"),
-
-            // Perlis
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/e/e0/Gua_Kelam_-_Perlis%2C_Malaysia.jpg",
-                    "Gua Kelam, Kaki Bukit", "An old suspension walkway through a natural limestone cave in Perlis", "Malaysia_Perlis"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/9/97/The_Cave_of_Darkness%2C_Gua_Kelam%2C_Perlis%2C_Malaysia_%284676111629%29.jpg",
-                    "Nakawan Range, Gua Kelam", "Limestone geology and an underground stream in Perlis", "Malaysia_Perlis"),
-
-            // Pulau Pinang
-            new WallpaperItem("https://images.unsplash.com/photo-1582298538104-fe2e74c27f59?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "George Town UNESCO Heritage", "A UNESCO World Heritage city of historic lanes and colonial architecture", "Malaysia_PulauPinang"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/b/be/Penang_Malaysia_Kek-Lok-Si-Temple-02.jpg",
-                    "Kek Lok Si Temple, Air Itam", "Malaysia's largest Buddhist temple, on the Air Itam hillside, with a seven-tier pagoda", "Malaysia_PulauPinang"),
-
-            // Sabah
-            new WallpaperItem("https://images.unsplash.com/photo-1571401835393-8c5f35328320?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Mount Kinabalu, Kundasang", "The highest peak in Malaysia, above a stunning sea of clouds", "Malaysia_Sabah"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/b/b7/South_Peak_Mount_Kinabalu_2.jpg",
-                    "South Peak, Mount Kinabalu", "Kinabalu's granite peaks silhouetted against the dawn sky, Sabah", "Malaysia_Sabah"),
-
-            // Sarawak
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/5/55/Mulu_Pinnacles.jpg",
-                    "Pinnacles, Mulu National Park", "Breathtaking UNESCO-listed limestone spires in the Borneo rainforest of Sarawak", "Malaysia_Sarawak"),
-            new WallpaperItem("https://images.unsplash.com/photo-1744525329284-3ffe4bcdf256?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Kuching Waterfront", "The Sarawak River, the Darul Hana Bridge and the iconic Sarawak State Assembly building", "Malaysia_Sarawak"),
-            new WallpaperItem("https://images.unsplash.com/photo-1590475461955-3e35807fa3a4?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Miri Coastline", "Sunset over the South China Sea on the Miri coast", "Malaysia_Sarawak"),
-
-            // Selangor
-            new WallpaperItem("https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Batu Caves Sri Subramaniar", "The iconic rainbow staircase against ancient limestone hills and the Lord Murugan statue", "Malaysia_Selangor"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/6/69/Sultan_Salahuddin_Abdul_Aziz_Mosque_by_Fairus_Khafiz.jpg",
-                    "Sultan Salahuddin Abdul Aziz Mosque", "Shah Alam's state mosque, with its grand blue dome and Malaysia's tallest minarets", "Malaysia_Selangor"),
-
-            // Terengganu
-            new WallpaperItem("https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Perhentian Islands Marine Paradise", "A marine paradise of clean white sand and living coral reefs", "Malaysia_Terengganu"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/7/7f/Crystal_Mosque_in_2016.jpg",
-                    "Crystal Mosque, Kuala Terengganu", "Modern glass-and-crystal architecture floating on the Terengganu River estuary", "Malaysia_Terengganu"),
-
-            // Wilayah Persekutuan
-            new WallpaperItem("https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=3840&h=2160&q=80",
-                    "Petronas Twin Towers & KLCC", "Malaysia's iconic twin towers in the heart of Kuala Lumpur", "Malaysia_WP"),
-            new WallpaperItem("https://upload.wikimedia.org/wikipedia/commons/f/f5/Petronas_twin_towers_at_night.jpg",
-                    "Kuala Lumpur Night Skyline", "Kuala Lumpur at night, glittering with skyscraper lights", "Malaysia_WP")
+                    "Litar Sibernetik Gelap", "Papan litar teknologi canggih dalam pencahayaan gelap minimalis", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Hamburan Pigmen Gelap", "Letupan zarah habuk hitam arang bertekstur tinggi dan halus", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Kanvas Arang Klasik", "Tekstur seni lukisan minyak gelap berona arang monokrom", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Bumi Malam & Orbit Hitam", "Ufuk biru Bumi di tengah kekosongan kosmos hitam pekat", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1519751138087-5bf79df62d5b?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Siluet Dedaun Monstera", "Dedaun tropika gelap berlatarbelakangkan bayang hitam misteri", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Prisma Cahaya Gelap", "Pancarona spektrum cahaya neon halus di ruang kegelapan mutlak", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Tekstur Hitam Tulen OLED", "Latar permukaan hitam arang minimalis khas untuk menjimatkan piksel OLED", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Gurun Basalt Hitam", "Bumi hitam gunung berapi dengan garisan ufuk tenang dan redup", "Minimalist_OLED"),
+            new WallpaperItem("https://images.unsplash.com/photo-1491557345352-5929e343eb89?auto=format&fit=crop&w=3840&h=2160&q=80",
+                    "Puncak Gunung Obsidian", "Puncak batu gunung tajam meredah awan ribut hitam dramatik", "Minimalist_OLED")
     };
 
     private OnlineWallpapers() {
@@ -274,8 +244,8 @@ final class OnlineWallpapers {
         if (sc.contains("ocean") || sc.contains("water") || sc.contains("coast")) {
             return ic.contains("ocean") || ic.contains("underwater") || ic.contains("coast");
         }
-        if (sc.contains("minim")) {
-            return ic.contains("minim") || ic.contains("atmos") || ic.contains("weather");
+        if (sc.contains("minim") || sc.contains("oled") || sc.contains("dark")) {
+            return ic.contains("minim") || ic.contains("oled") || ic.contains("dark") || ic.contains("atmos") || ic.contains("weather");
         }
         if (sc.contains("malay")) {
             return ic.contains("malay");
@@ -283,7 +253,35 @@ final class OnlineWallpapers {
         return ic.contains(sc);
     }
 
+    static void cleanOutdatedCategoryWallpapers(File d, String category) {
+        if (d == null || !d.exists()) return;
+        Set<String> validHashes = new HashSet<>();
+        for (WallpaperItem item : CURATED_CATALOG) {
+            if (matchesCategory(item.category, category)) {
+                validHashes.add(hashFilename(item.url));
+            }
+        }
+        File[] files = d.listFiles((dir, name) -> name.endsWith(".jpg"));
+        if (files == null) return;
+        for (File f : files) {
+            String base = f.getName().replace(".jpg", "");
+            if (!validHashes.contains(base)) {
+                String[] desc = describe(f);
+                if (desc != null && desc.length >= 3 && matchesCategory(desc[2], category)) {
+                    f.delete();
+                    File txt = new File(d, base + ".txt");
+                    if (txt.exists()) txt.delete();
+                    Log.i(TAG, "Removed outdated " + category + " wallpaper: " + f.getName());
+                }
+            }
+        }
+    }
+
     static List<File> listByCategory(Context ctx, String category) {
+        File d = dir(ctx);
+        if (d != null && d.exists()) {
+            cleanOutdatedCategoryWallpapers(d, category);
+        }
         List<File> all = list(ctx);
         if (category == null || category.equalsIgnoreCase("All")) return all;
         List<File> filtered = new ArrayList<>();
@@ -303,6 +301,8 @@ final class OnlineWallpapers {
         if (d == null) return false;
         if (!d.exists() && !d.mkdirs()) return false;
 
+        cleanOutdatedCategoryWallpapers(d, category);
+
         List<WallpaperItem> candidates = new ArrayList<>();
         for (WallpaperItem item : CURATED_CATALOG) {
             if (matchesCategory(item.category, category)) {
@@ -310,10 +310,9 @@ final class OnlineWallpapers {
             }
         }
         if (candidates.isEmpty()) return false;
-        Collections.shuffle(candidates);
 
         boolean anyDownloaded = false;
-        int targetNew = 3;
+        int targetNew = candidates.size();
         int count = 0;
 
         for (WallpaperItem item : candidates) {

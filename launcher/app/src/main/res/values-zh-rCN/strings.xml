@@ -15,7 +15,7 @@
     <string name="not_available">此电视不支持该功能</string>
     <string name="cant_open">无法打开 %1$s</string>
     <string name="date_format">yyyy年M月d日</string>
-    <string name="dream_name">时钟</string>
+    <string name="dream_name">Nightstand Screensaver</string>
     <string name="tile_move">移动</string>
     <string name="tile_app_info">应用信息</string>
 </resources>

@@ -66,7 +66,113 @@ final class CacheCleaner {
     private static final int PORT = 5555;
     private static volatile boolean running;
 
+    public interface CleanCallback {
+        void onCleanFinished(long bytesFreed, int percentBefore, int percentAfter, boolean systemCachesTrimmed);
+    }
+
     private CacheCleaner() {
+    }
+
+    public static long getFreeStorageBytes() {
+        try {
+            StatFs s = new StatFs(Environment.getDataDirectory().getPath());
+            return s.getAvailableBytes();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    public static long getTotalStorageBytes() {
+        try {
+            StatFs s = new StatFs(Environment.getDataDirectory().getPath());
+            return s.getTotalBytes();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    public static long deleteDirContents(File dir) {
+        if (dir == null || !dir.exists() || !dir.isDirectory()) return 0;
+        long bytes = 0;
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    bytes += deleteDirContents(f);
+                    f.delete();
+                } else {
+                    bytes += f.length();
+                    f.delete();
+                }
+            }
+        }
+        return bytes;
+    }
+
+    /** Manually triggers an immediate deep cache clean from Settings. */
+    public static void cleanNow(Context ctx, CleanCallback callback) {
+        if (running) {
+            if (callback != null) {
+                callback.onCleanFinished(0, usedPercent(), usedPercent(), false);
+            }
+            return;
+        }
+        running = true;
+        final Context app = ctx.getApplicationContext();
+        new Thread(() -> {
+            long bytesFreed = 0;
+            int beforePercent = usedPercent();
+            long freeBefore = getFreeStorageBytes();
+            boolean systemTrimmed = false;
+            try {
+                // 1. Delete app internal and external cache
+                bytesFreed += deleteDirContents(app.getCacheDir());
+                bytesFreed += deleteDirContents(app.getExternalCacheDir());
+
+                // 2. Clear any lingering .tmp downloads
+                File onlineDir = OnlineWallpapers.dir(app);
+                if (onlineDir != null && onlineDir.exists()) {
+                    File[] tmps = onlineDir.listFiles((d, name) -> name.endsWith(".tmp"));
+                    if (tmps != null) {
+                        for (File f : tmps) {
+                            bytesFreed += f.length();
+                            f.delete();
+                        }
+                    }
+                }
+
+                // 3. Run system trim-caches via local ADB
+                try {
+                    systemTrimmed = shell(app, false, COMMAND, null);
+                    if (!systemTrimmed) systemTrimmed = shell(app, true, COMMAND, null);
+                    if (systemTrimmed) {
+                        long now = System.currentTimeMillis();
+                        prefs(app).edit().putLong("cleaned", now).putLong("seen", now).putInt("declined", 0).apply();
+                        Log.i(TAG, "system trim-caches succeeded via adb shell");
+                    }
+                } catch (Exception e) {
+                    Log.i(TAG, "system trim-caches skipped/failed: " + e);
+                }
+
+                // 4. Force JVM garbage collection
+                System.gc();
+
+                long freeAfter = getFreeStorageBytes();
+                int afterPercent = usedPercent();
+                if (freeAfter > freeBefore) {
+                    bytesFreed = Math.max(bytesFreed, freeAfter - freeBefore);
+                }
+
+                if (callback != null) {
+                    long finalFreed = bytesFreed;
+                    boolean finalTrimmed = systemTrimmed;
+                    android.os.Handler mainHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+                    mainHandler.post(() -> callback.onCleanFinished(finalFreed, beforePercent, afterPercent, finalTrimmed));
+                }
+            } finally {
+                running = false;
+            }
+        }, "cache-clean-now").start();
     }
 
     /** Cleans in the background when it is due; {@code days} 0 means never. */

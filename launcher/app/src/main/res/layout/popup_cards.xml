@@ -17,10 +17,15 @@
         android:paddingTop="8dp"
         android:paddingBottom="6dp"
         android:text="@string/module_cards"
-        android:textColor="#8CFFFFFF"
-        android:textSize="11sp"
+        android:textColor="#E6FFFFFF"
+        android:textSize="13sp"
         android:fontFamily="@font/outfit"
-        android:fontVariationSettings="'wght' 500"
+        android:fontVariationSettings="'wght' 700"
+        android:textStyle="bold"
+        android:shadowColor="#CC000000"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="2"
         android:letterSpacing="0.18"
         android:textAllCaps="true" />
 

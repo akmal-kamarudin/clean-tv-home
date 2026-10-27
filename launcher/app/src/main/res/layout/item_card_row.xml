@@ -27,9 +27,14 @@
             android:layout_marginEnd="12dp"
             android:textColor="@drawable/pill_text"
             android:duplicateParentState="true"
-            android:textSize="15sp"
+            android:textSize="16sp"
             android:fontFamily="@font/outfit"
-            android:fontVariationSettings="'wght' 500"
+            android:fontVariationSettings="'wght' 700"
+            android:textStyle="bold"
+            android:shadowColor="#CC000000"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="3"
             android:singleLine="true"
             android:ellipsize="end" />
 
@@ -39,8 +44,10 @@
             android:layout_height="wrap_content"
             android:textColor="@drawable/pill_text"
             android:duplicateParentState="true"
-            android:textSize="11sp"
+            android:textSize="13sp"
             android:fontFamily="@font/outfit"
+            android:fontVariationSettings="'wght' 700"
+            android:textStyle="bold"
             android:letterSpacing="0.04" />
     </LinearLayout>
 
@@ -50,8 +57,10 @@
         android:layout_height="wrap_content"
         android:textColor="@drawable/pill_text_mid"
         android:duplicateParentState="true"
-        android:textSize="11sp"
+        android:textSize="13sp"
         android:fontFamily="@font/outfit"
+        android:fontVariationSettings="'wght' 600"
+        android:textStyle="bold"
         android:singleLine="true"
         android:ellipsize="end" />
 
@@ -61,8 +70,9 @@
         android:layout_height="wrap_content"
         android:textColor="@drawable/pill_text_mid"
         android:duplicateParentState="true"
-        android:textSize="11sp"
+        android:textSize="12sp"
         android:fontFamily="@font/outfit"
+        android:fontVariationSettings="'wght' 550"
         android:singleLine="true"
         android:ellipsize="middle" />
 
@@ -73,8 +83,9 @@
         android:layout_marginTop="2dp"
         android:textColor="@drawable/pill_text_mid"
         android:duplicateParentState="true"
-        android:textSize="10sp"
+        android:textSize="11sp"
         android:letterSpacing="0.03"
         android:fontFamily="@font/outfit"
+        android:fontVariationSettings="'wght' 550"
         android:maxLines="2" />
 </LinearLayout>

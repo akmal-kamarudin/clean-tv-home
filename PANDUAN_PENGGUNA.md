@@ -18,9 +18,9 @@ Glass TV Home ialah pengganti skrin utama (*launcher*) untuk Android TV dan Goog
 ## 📦 Muat Turun Fail APK Terus (Direct Download)
 
 Bagi pengguna yang ingin memuat turun fail APK siap pasang secara langsung:
-* 📥 **Muat Turun Fail APK Rasmi**: [**glass-tv-home.apk** (504 KB)](https://github.com/aqmangge/glass-tv-home/raw/main/release/glass-tv-home.apk)
+* 📥 **Muat Turun Fail APK Rasmi**: [**glass-tv-home.apk** (644 KB)](https://github.com/aqmangge/glass-tv-home/raw/main/release/glass-tv-home.apk)
 * 📁 **Lokasi Dalam Repositori**: [`release/glass-tv-home.apk`](release/glass-tv-home.apk)
-* ⚡ **Versi**: **v2.6.0** (Terkini: 🎮 Pilihan Sound Effect Konsol, 🔄 OTA In-App Auto Update & Prompt AI Update Patch, 🇲🇾 Wallpaper 14 Negeri Malaysia, Phone QR Upload, Photo Manager)
+* ⚡ **Versi**: **v3.0.0** (Keluaran Utama: 🍏 Dashboard Cuaca Apple Weather Widescreen Bento Grid, 🌧️ Latar Belakang Cuaca Dinamik 60fps dengan Mod Cerah/Hujan/Ribut/Mendung/Malam, 📡 Peta Radar Kerpasan Doppler, 🧭 Kompas Angin Berpusing, 🌙 Fasa Bulan 3D Kawah Realistik, 🕌 Notifikasi Popup Azan 16:9 Terapung & Tetapan Audio Azan Pelbagai Pilihan, 🎮 Profil Bunyi Konsol: PS5, Switch, Xbox & Mod Senyap, 🔄 Kemas Kini Automatik In-App OTA).
 
 > [!NOTE]
 > ### 🇲🇾 Pengguna Unifi TV Box (TM Unifi Plus Box): Adakah Boleh Guna & Adakah Batal Waranti?
@@ -136,13 +136,13 @@ Sangat mudah dan intuitif! Anda hanya perlukan butang arah pada remote TV anda:
 
 | Butang Remote | Tindakan / Fungsi |
 | :--- | :--- |
-| **Tekan Dua Kali HOME (Double-Press)** | • **Di Luar**: Buka Pengurus Recent Apps & RAM Cleaner.<br>• **Di Dalam Recent Apps**: Terus jalankan **Close All** untuk tutup semua aplikasi & cuci RAM serta-merta! |
 | **Butang HOME (Sekali Tekan)** | Kembali ke skrin utama dari mana-mana aplikasi. Jika di skrin utama, buka screensaver StandBy. |
+| **Tekan & Tahan HOME (Long-Press)** | Buka Menu Tetapan Kaca Terapung (*Quick Settings Popup*) secara global dari mana-mana aplikasi (termasuk Netflix, YouTube, dll.). |
 | **Butang ATAS (▲)** | Naik ke atas untuk pilih **Kapsul Cuaca & Jerebu**, menu Inputs, Wi-Fi, atau **Butang Tetapan (⚙️ Settings)**. |
 | **Butang TENGAH (OK)** | • Tekan pada aplikasi untuk buka aplikasi tersebut.<br>• Tekan pada kapsul cuaca untuk buka **Dashboard Cuaca & Kualiti Udara penuh**.<br>• Tekan pada butang **Settings (⚙️)** untuk buka **Menu Dropdown Kaca** (Wallpaper, Jerebu, Waktu Solat, Android Settings).<br>• **Tekan & Tahan (Long-press)** pada aplikasi untuk susun atau pindahkan ikon ke dalam/luar dock. |
 | **Butang BAWAH (▼)** | Turun semula ke barisan aplikasi utama (*Dock*). |
 | **Butang KIRI / KANAN (◀ / ▶)** | Bergerak antara aplikasi atau beralih antara menu atas. |
-| **Butang BACK (↩)** | Keluar dari Dashboard Cuaca, Dialog Pilihan, Recent Apps, atau Screensaver dan kembali ke skrin utama. |
+| **Butang BACK (↩)** | Keluar dari Dashboard Cuaca, Dialog Pilihan, atau Screensaver dan kembali ke skrin utama. |
 
 ---
 
@@ -213,14 +213,14 @@ Pengguna yang memasang fail APK secara manual atau berpindah rumah **TIDAK PERLU
 * **2 Jam Selepas Itu**: Jika TV terus tidak disentuh, sistem akan mematikan paparan TV (*sleep standby*) secara automatik.
 * **Untuk Hidupkan Semula**: Tekan mana-mana butang pada remote untuk bangunkan TV.
 
-### E. Pengurus Recent Apps & Pembersih RAM (Tekan 2 Kali Butang Home) ⚡
-Ciri pintar seumpama tvOS / Android TV premium untuk melihat dan membersihkan aplikasi latar belakang:
-* **Cara Buka**: Tekan butang **HOME dua kali berturut-turut** di mana-mana skrin atau aplikasi (atau butang App Switch pada remote tertentu).
-* **Tekan Home 2 Kali untuk 'Close All'**: Semasa berada di dalam skrin Recent Apps, **tekan butang HOME dua kali lagi** untuk terus menutup semua aplikasi dan membebaskan RAM serta-merta tanpa perlu menekan butang lain!
-* **Penamatan Sebenar (Genuine Force-Stop)**: Sistem kami dilengkapi integrasi pintar perkhidmatan Accessibility yang secara automatik menamatkan aplikasi latar mahupun aplikasi penstriman video degil (seperti Nuvio, YouTube, Stremio) hingga ke akar umbi, bukan sekadar membuang kad dari paparan.
-* **Kapsul Status RAM**: Di sudut atas kanan, memaparkan bacaan RAM masa nyata (contoh: `RAM 1.8 GB used of 2.3 GB`) dengan bar kemajuan.
-* **Tutup Aplikasi Individu**: Pada mana-mana kad aplikasi yang dipilih, **tekan butang ATAS (▲)** pada remote untuk menutup proses aplikasi tersebut dan membebaskan RAM serta-merta.
-* **Butang 'Close All' (Ikon Tong Sampah 🗑️)**: Gerakkan fokus ke hujung kanan senarai dan tekan butang bulat **Close All** untuk menutup semua aplikasi serentak dalam 1 klik!
+### E. Notifikasi Popup Azan 16:9 & Tetapan Audio Mengikut Waktu Solat 🕌
+Ciri rohani eksklusif untuk kediaman Muslim pintar yang disegerakkan secara langsung dengan waktu rasmi JAKIM E-Solat Malaysia:
+* **Terapung Di Atas Mana-Mana Aplikasi**: Apabila masuk waktu solat, kad kaca 16:9 yang elegan akan muncul terapung di skrin secara automatik walaupun anda sedang menonton Netflix, YouTube, atau aplikasi TV lain tanpa mengganggu kestabilan sistem.
+* **Tetapan Penuh (All-In-One Dialog)**: Buka melalui ikon **Candy Box (㗊)** di bar atas atau **Tekan & Tahan Butang HOME**:
+  1. **A. Suis Utama Popup Azan**: Hidupkan (*ON*) atau matikan (*OFF*) paparan notifikasi terapung.
+  2. **B. Tetapan Waktu Solat Individu**: Kawal notifikasi secara berasingan untuk setiap 6 waktu: *Subuh, Syuruk, Zohor, Asar, Maghrib, Isyak*. Setiap suis boleh dihidupkan atau dimatikan mengikut keselesaan keluarga anda.
+  3. **C. Pilihan Bunyi Azan**: Pilih antara audio azan penuh yang merdu: *Masjid As-Syakirin KLCC, Makkah Mukarramah, atau Madinah Munawwarah*.
+  4. **D. Uji Popup Azan Serta-Merta**: Tekan butang **▶️ Uji Popup Azan Sekarang** untuk mencetuskan pratonton kad terapung dan memeriksa kelantangan audio dengan 1 klik.
 
 ### F. Menu Tetapan Frosted Glass (Settings Dropdown Menu) ⚙️
 Di bar atas skrin utama, tekan butang **Settings (ikon gear ⚙️)** untuk memaparkan menu terapung gaya kaca Apple tvOS:

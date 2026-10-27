@@ -28,15 +28,20 @@
         android:layout_marginEnd="12dp"
         android:textColor="@drawable/top_text"
         android:duplicateParentState="true"
-        android:textSize="15sp"
+        android:textSize="16sp"
         android:fontFamily="@font/outfit"
-        android:fontVariationSettings="'wght' 500"
+        android:fontVariationSettings="'wght' 600"
+        android:textStyle="bold"
+        android:shadowColor="#CC000000"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="3"
         android:singleLine="true" />
 
     <View
         android:id="@+id/dot"
-        android:layout_width="7dp"
-        android:layout_height="7dp"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
         android:layout_marginEnd="8dp"
         android:background="@drawable/status_dot" />
 
@@ -46,7 +51,13 @@
         android:layout_height="wrap_content"
         android:textColor="@drawable/top_text_dim"
         android:duplicateParentState="true"
-        android:textSize="11sp"
+        android:textSize="13sp"
         android:fontFamily="@font/outfit"
-        android:letterSpacing="0.04" />
+        android:fontVariationSettings="'wght' 550"
+        android:textStyle="bold"
+        android:shadowColor="#CC000000"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="3"
+        android:letterSpacing="0.02" />
 </LinearLayout>
